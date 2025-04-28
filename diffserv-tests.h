@@ -12,11 +12,11 @@ class DiffservTests
 public:
   DiffservTests();
 
-  // Runs all the tests
+  // Run all the tests
   void RunAll();
 
 private:
-  // Individual test cases
+  // Individual Tests
   bool TestDestinationIPAddress();
 };
 
