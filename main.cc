@@ -1,22 +1,31 @@
 // main.cc
-
 #include "ns3/core-module.h"
-#include "destination-ip-address-test.cc"
+#include "diffserv-tests.h"
 
 using namespace ns3;
 
 int main(int argc, char *argv[])
 {
+  bool runTests = false;
   CommandLine cmd;
+  cmd.AddValue("runTests", "Run unit tests (true/false)", runTests);
   cmd.Parse(argc, argv);
 
-  std::cout << "Starting DiffServ main program..." << std::endl;
 
-  // Create a test runner object
-  DiffservTests tests;
+  // Allow running unit tests from the command line
+  if (runTests)
+  {
+    std::cout << "Running Diffserv unit tests..." << std::endl;
+    DiffservTests tests;
+    tests.RunAll();  // 👈 manually call RunAll()
+    return 0;
+  }
+  else
+  {
+    std::cout << "Running Diffserv simulation..." << std::endl;
 
-  // Call your test methods
-  tests.TestDestinationIpAddressMatch();
+    // Your real Diffserv simulation here
 
-  return 0;
+    return 0;
+  }
 }
