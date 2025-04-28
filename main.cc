@@ -1,4 +1,3 @@
-// main.cc
 #include "ns3/core-module.h"
 #include "diffserv-tests.h"
 

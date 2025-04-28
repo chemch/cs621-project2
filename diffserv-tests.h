@@ -18,6 +18,7 @@ public:
 private:
   // Individual Tests
   bool TestDestinationIPAddress();
+  bool TestSourceIPAddress();
 };
 
 } // namespace ns3
