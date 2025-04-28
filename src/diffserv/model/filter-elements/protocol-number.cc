@@ -1,5 +1,5 @@
-#include "filter-elements/protocol-number.h"
 #include "ns3/ipv4-header.h"
+#include "protocol-number.h"
 
 namespace ns3 {
 

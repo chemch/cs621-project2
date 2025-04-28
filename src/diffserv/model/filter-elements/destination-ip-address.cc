@@ -1,5 +1,5 @@
-#include "filter-elements/destination-ip-address.h"
 #include "ns3/ipv4-header.h"
+#include "destination-ip-address.h"
 
 namespace ns3 {
 
@@ -9,9 +9,7 @@ namespace ns3 {
  * \param destinationIp The destination IP address to match.
  */
 DestinationIPAddress::DestinationIPAddress(Ipv4Address destinationIp)
-  : m_destinationIp(destinationIp)
-{
-}
+  : m_destinationIp(destinationIp) {}
 
 /**
  * \ingroup diffserv

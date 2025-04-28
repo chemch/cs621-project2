@@ -3,7 +3,7 @@
 
 #include "ns3/packet.h"
 #include "ns3/ipv4-address.h"
-#include "filter-elements/filter-element.h"
+#include "filter-element.h"
 
 
 namespace ns3 {

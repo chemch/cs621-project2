@@ -3,7 +3,7 @@
 
 #include "ns3/packet.h"
 #include "ns3/ipv4-address.h"
-#include "filter-elements/filter-element.h"
+#include "filter-element.h"
 
 
 namespace ns3 {
@@ -12,7 +12,7 @@ namespace ns3 {
  * \ingroup diffserv
  * \brief Class to match source IP Address using a mask.
  */
-class DestinationMask : public FilterElement
+class SourceMask : public FilterElement
 {
 public:
     /**
@@ -20,7 +20,7 @@ public:
      * \param mask The source IP mask to apply.
      * \param ipAddress The source IP Address to match.
      */
-    DestinationMask(Ipv4Mask mask, Ipv4Address ipAddress);
+    SourceMask(Ipv4Mask mask, Ipv4Address ipAddress);
 
     /**
      * \brief Match the packet's source IP Address using the provided mask.

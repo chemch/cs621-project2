@@ -1,5 +1,5 @@
-#include "filter-elements/source-ip-address.h"
 #include "ns3/ipv4-header.h"
+#include "source-ip-address.h"
 
 namespace ns3 {
 

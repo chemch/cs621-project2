@@ -1,5 +1,5 @@
-#include "filter-elements/destination-mask.h"
 #include "ns3/ipv4-header.h"
+#include "destination-mask.h"
 
 namespace ns3 {
 

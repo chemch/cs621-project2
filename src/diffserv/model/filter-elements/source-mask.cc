@@ -1,5 +1,6 @@
-#include "filter-elements/source-mask.h"
+#include "source-mask.h"
 #include "ns3/ipv4-header.h"
+#include "source-mask.h"
 
 namespace ns3 {
 
@@ -9,7 +10,7 @@ namespace ns3 {
  * \param mask The source IP mask to apply.
  * \param ipAddress The source IP address to match.
  */
-DestinationMask::DestinationMask(Ipv4Mask mask, Ipv4Address ipAddress)
+SourceMask::SourceMask(Ipv4Mask mask, Ipv4Address ipAddress)
   : m_mask(mask), m_address(ipAddress) {}
 
 /**
@@ -19,7 +20,7 @@ DestinationMask::DestinationMask(Ipv4Mask mask, Ipv4Address ipAddress)
  * \returns true if the masked source IP matches, false otherwise.
  */
 bool
-DestinationMask::Match(Ptr<Packet> pkt) const
+SourceMask::Match(Ptr<Packet> pkt) const
 {
     Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
