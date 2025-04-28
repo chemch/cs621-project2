@@ -1,7 +1,7 @@
 #include "ns3/ipv4-header.h"
 #include "ns3/tcp-header.h"
 #include "ns3/udp-header.h"
-#include "destination-port.h"
+#include "destination-port-number.h"
 
 namespace ns3 {
 

@@ -12,8 +12,9 @@
 #include "ns3/udp-header.h"
 #include "ns3/core-module.h"
 
-#include "diffserv.h"
+#include "main.h"
 
+#include "source-ip-address.h"
 
 using namespace ns3;
 
