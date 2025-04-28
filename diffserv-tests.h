@@ -19,6 +19,8 @@ private:
   // Individual Tests
   bool TestDestinationIPAddress();
   bool TestSourceIPAddress();
+  bool TestSourcePortNumber();
+  bool TestDestinationPortNumber();
 };
 
 } // namespace ns3

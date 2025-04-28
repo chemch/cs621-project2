@@ -26,8 +26,8 @@ SourcePortNumber::Match(Ptr<Packet> pkt) const
     Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
 
-    // If we're unable to peek the IPv4 header, return false
-    if (!packetCopy->PeekHeader(ipv4Header))
+    // If we're unable to remove the IPv4 header, return false
+    if (!packetCopy->RemoveHeader(ipv4Header))
     {
         return false;
     }
