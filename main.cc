@@ -1,5 +1,7 @@
+// main.cc
+
 #include "ns3/core-module.h"
-// #include "test-destination-ip-address.cc" 
+#include "destination-ip-address-test.cc"
 
 using namespace ns3;
 
@@ -8,9 +10,13 @@ int main(int argc, char *argv[])
   CommandLine cmd;
   cmd.Parse(argc, argv);
 
-  std::cout << "Starting DiffServ main..." << std::endl;
+  std::cout << "Starting DiffServ main program..." << std::endl;
 
-//   TestDestinationIpAddressMatch();
+  // Create a test runner object
+  DiffservTests tests;
+
+  // Call your test methods
+  tests.TestDestinationIpAddressMatch();
 
   return 0;
 }
