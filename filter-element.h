@@ -21,7 +21,7 @@ public:
     virtual bool Match(Ptr<Packet> pkt) const = 0;
 
     /**
-     * \brief Virtual Destructor.
+     * \brief Virtual Destructor. Must be overriden. 
      */
     virtual ~FilterElement() = default;
 };

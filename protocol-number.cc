@@ -25,7 +25,7 @@ ProtocolNumber::Match(Ptr<Packet> pkt) const
     Ptr<Packet> packetCopy = pkt->Copy();
 
     // If we can't peek at the IPv4 header, the packet doesn't match.
-    if (!packetCopy->PeekHeader(ipv4Header))
+    if (!packetCopy->RemoveHeader(ipv4Header))
     {
         return false;
     }
