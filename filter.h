@@ -4,7 +4,7 @@
 #include "ns3/packet.h"
 #include <vector>
 #include <memory>
-
+#include "filter-element.h"
 
 namespace ns3 {
 

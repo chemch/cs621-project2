@@ -25,6 +25,7 @@ private:
   bool TestDestinationMask();
   bool TestProtocolNumber();
   bool TestFilter();
+  bool TestTrafficClass();
 };
 
 } // namespace ns3

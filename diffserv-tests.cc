@@ -1,10 +1,13 @@
 #include "diffserv-tests.h"
 #include "destination-ip-address.h"
 #include "source-ip-address.h"
+#include "filter.h"
 #include "source-port-number.h"
 #include "destination-port-number.h" 
 #include "protocol-number.h"
 #include "source-mask.h"
+#include "traffic-class.h"
+#include "filter-element.h"
 #include "destination-mask.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -31,6 +34,7 @@ void DiffservTests::RunAll()
   if (TestDestinationMask()) passed++; total++;
   if (TestProtocolNumber()) passed++; total++;
   if (TestFilter()) passed++; total++;
+  if (TestTrafficClass()) passed++; total++;
 
   std::cout << "-- Tests complete: " << passed << "/" << total
             << " passed --" << std::endl;
@@ -462,7 +466,7 @@ bool DiffservTests::TestFilter()
       : m_shouldMatch(shouldMatch) {}
 
     // Override the Match method (just return the stored value)
-    bool match(Ptr<Packet> packet) const override
+    bool Match(Ptr<Packet> packet) const override
     {
       return m_shouldMatch;
     }
@@ -480,7 +484,7 @@ bool DiffservTests::TestFilter()
   filterAllMatch.addFilterElement(new TestFilterElement(true));
 
   // Should match since all elements are set to true (directly)
-  if (!filterAllMatch.match(pkt))
+  if (!filterAllMatch.Match(pkt))
   {
     std::cout << "\tFAILED: All filter elements should have matched." << std::endl;
     return false;
@@ -496,7 +500,7 @@ bool DiffservTests::TestFilter()
   filterOneFails.addFilterElement(new TestFilterElement(false));
 
   // Should fail since one element is set to false
-  if (filterOneFails.match(pkt))
+  if (filterOneFails.Match(pkt))
   {
     std::cout << "\tFAILED: Filter matched even though one element should have failed." << std::endl;
     return false;
@@ -504,6 +508,126 @@ bool DiffservTests::TestFilter()
   else
   {
     std::cout << "\tPASSED: Filter correctly failed when one element did not match." << std::endl;
+  }
+
+  return true;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Test the TrafficClass.
+ *
+ * This test checks queue operations, filter matching, and initial state behavior.
+ *
+ * \returns true if the test passes. Return false on unexpected fails. 
+ */
+bool DiffservTests::TestTrafficClass()
+{
+  std::cout << "-- [TestTrafficClass] --" << std::endl;
+
+  TrafficClass trafficClass;
+
+  // Should be empty initially
+  if (!trafficClass.IsEmpty())
+  {
+    std::cout << "\tFAILED: TrafficClass should be empty initially." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: TrafficClass initially empty." << std::endl;
+  }
+
+  // Check default max packets
+  if (trafficClass.GetMaxPackets() != 100)
+  {
+    std::cout << "\tFAILED: Default max packets should be 100." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: Default max packets is 100." << std::endl;
+  }
+
+  // Enqueue a packet
+  Ptr<Packet> pkt = Create<Packet>(20);
+  if (!trafficClass.Enqueue(pkt))
+  {
+    std::cout << "\tFAILED: Enqueue failed unexpectedly." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: Packet enqueued successfully." << std::endl;
+  }
+
+  if (trafficClass.IsEmpty())
+  {
+    std::cout << "\tFAILED: TrafficClass should not be empty after Enqueue." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: TrafficClass is not empty after Enqueue." << std::endl;
+  }
+
+  // Peek packet
+  Ptr<Packet> peekPkt = trafficClass.Peek();
+  if (peekPkt == nullptr)
+  {
+    std::cout << "\tFAILED: Peek returned null packet." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: Peek returned a valid packet." << std::endl;
+  }
+
+  // Dequeue packet
+  Ptr<Packet> dequeuedPkt = trafficClass.Dequeue();
+  if (dequeuedPkt == nullptr)
+  {
+    std::cout << "\tFAILED: Dequeue returned null packet." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: Dequeue returned a valid packet." << std::endl;
+  }
+
+  if (!trafficClass.IsEmpty())
+  {
+    std::cout << "\tFAILED: TrafficClass should be empty after Dequeue." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: TrafficClass empty after Dequeue." << std::endl;
+  }
+
+  // Test Filter class - always true (match)
+  class TestFilter : public Filter
+  {
+  public:
+    bool Match(Ptr<Packet> pkt) const
+    {
+      return true;
+    }
+  };
+
+  // Important Test Here (Test Filter and Match Functionality)
+  TestFilter* testFilter = new TestFilter();
+  trafficClass.AddFilter(testFilter);
+
+  // Check that there is a match on the packet
+  if (!trafficClass.Match(pkt))
+  {
+    std::cout << "\tFAILED: TrafficClass Match() failed with Filter." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: TrafficClass Match() worked perfectly. Yes." << std::endl;
   }
 
   return true;
