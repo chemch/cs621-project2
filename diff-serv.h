@@ -1,8 +1,9 @@
 #ifndef DIFF_SERV_H
 #define DIFF_SERV_H
 
-#include "ns3/queue.h"
 #include "traffic-class.h"
+#include "ns3/queue.h"
+#include "ns3/packet.h"
 
 namespace ns3 {
 
