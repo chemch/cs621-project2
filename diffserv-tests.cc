@@ -2,6 +2,7 @@
 #include "destination-ip-address.h"
 #include "source-ip-address.h"
 #include "filter.h"
+#include "diff-serv.h"
 #include "source-port-number.h"
 #include "destination-port-number.h" 
 #include "protocol-number.h"
@@ -35,6 +36,7 @@ void DiffservTests::RunAll()
   if (TestProtocolNumber()) passed++; total++;
   if (TestFilter()) passed++; total++;
   if (TestTrafficClass()) passed++; total++;
+  if (TestDiffServ()) passed++; total++;
 
   std::cout << "-- Tests complete: " << passed << "/" << total
             << " passed --" << std::endl;
@@ -628,6 +630,134 @@ bool DiffservTests::TestTrafficClass()
   else
   {
     std::cout << "\tPASSED: TrafficClass Match() worked perfectly. Yes." << std::endl;
+  }
+
+  return true;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Test the DiffServ class enqueue, dequeue, and classify behavior.
+ */
+bool DiffservTests::TestDiffServ()
+{
+  std::cout << "-- [TestDiffServ] --" << std::endl;
+
+  class DummyTrafficClass : public TrafficClass
+  {
+  public:
+    bool Match(Ptr<Packet> pkt) const
+    {
+      return true;
+    }
+
+    bool Enqueue(Ptr<Packet> pkt)
+    {
+      m_pkt = pkt;
+      return true;
+    }
+
+    Ptr<Packet> Dequeue()
+    {
+      return m_pkt;
+    }
+
+    Ptr<Packet> Peek() const
+    {
+      return m_pkt;
+    }
+
+    Ptr<Packet> Remove()
+    {
+      return m_pkt;
+    }
+
+  private:
+    Ptr<Packet> m_pkt;
+  };
+
+
+
+
+
+
+
+  // Create DiffServ instance and test traffic class
+  class TestDiffServImpl : public DiffServ
+  {
+  public:
+
+    /**
+     * Define test Schedule behavior to always return a packet.
+     * This is a dummy implementation for testing purposes.
+     *  */  
+    Ptr<const Packet> Schedule() const override
+    {
+      // Always return a scheduled packet for test
+      if (!m_dummyPkt)
+      {
+        m_dummyPkt = Create<Packet>(30);
+      }
+
+      return m_dummyPkt;
+    }
+
+  private:
+    mutable Ptr<Packet> m_dummyPkt;
+  };
+
+  Ptr<Packet> testPkt = Create<Packet>(42);
+
+  TestDiffServImpl diffserv;
+  DummyTrafficClass* trafficClass = new DummyTrafficClass();
+  diffserv.AddQueue(trafficClass);
+
+  // Test Enqueue
+  if (!diffserv.Enqueue(testPkt))
+  {
+    std::cout << "\tFAILED: DiffServ failed to enqueue packet." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: DiffServ enqueue successful." << std::endl;
+  }
+
+  // Test Dequeue
+  Ptr<Packet> dqPkt = diffserv.Dequeue();
+  if (dqPkt == nullptr)
+  {
+    std::cout << "\tFAILED: DiffServ dequeue returned null." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: DiffServ dequeue returned valid packet." << std::endl;
+  }
+
+  // Test Peek
+  Ptr<const Packet> peekPkt = diffserv.Peek();
+  if (peekPkt == nullptr)
+  {
+    std::cout << "\tFAILED: DiffServ peek returned null." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: DiffServ peek returned valid packet." << std::endl;
+  }
+
+  // Test Remove (need to enqueue again)
+  diffserv.Enqueue(testPkt);
+  Ptr<Packet> rmPkt = diffserv.Remove();
+  if (rmPkt == nullptr)
+  {
+    std::cout << "\tFAILED: DiffServ remove returned null." << std::endl;
+    return false;
+  }
+  else
+  {
+    std::cout << "\tPASSED: DiffServ remove returned valid packet." << std::endl;
   }
 
   return true;

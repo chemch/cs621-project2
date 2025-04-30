@@ -26,6 +26,7 @@ private:
   bool TestProtocolNumber();
   bool TestFilter();
   bool TestTrafficClass();
+  bool TestDiffServ();
 };
 
 } // namespace ns3
