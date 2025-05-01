@@ -7,6 +7,7 @@
 #include "destination-port-number.h" 
 #include "protocol-number.h"
 #include "source-mask.h"
+#include "spq.h"
 #include "traffic-class.h"
 #include "filter-element.h"
 #include "destination-mask.h"
@@ -37,6 +38,7 @@ void DiffservTests::RunAll()
   if (TestFilter()) passed++; total++;
   if (TestTrafficClass()) passed++; total++;
   if (TestDiffServ()) passed++; total++;
+  if (TestSPQ()) passed++; total++;
 
   std::cout << "-- Tests complete: " << passed << "/" << total
             << " passed --" << std::endl;
@@ -676,12 +678,6 @@ bool DiffservTests::TestDiffServ()
     Ptr<Packet> m_pkt;
   };
 
-
-
-
-
-
-
   // Create DiffServ instance and test traffic class
   class TestDiffServImpl : public DiffServ
   {
@@ -760,5 +756,55 @@ bool DiffservTests::TestDiffServ()
     std::cout << "\tPASSED: DiffServ remove returned valid packet." << std::endl;
   }
 
+  return true;
+}
+
+
+/**
+ * \ingroup diffserv
+ * \brief Test the SPQ (Strict Priority Queue) scheduling logic.
+ *
+ * This test creates multiple TrafficClass instances with varying priorities,
+ * enqueues packets in them, and ensures SPQ::Schedule returns the one
+ * from the highest priority (lowest priority number).
+ */
+bool DiffservTests::TestSPQ()
+{
+  std::cout << "-- [TestSPQ] --" << std::endl;
+
+  // Define test traffic classes
+  TrafficClass* highPriority = new TrafficClass();
+  highPriority->SetPriorityLevel(0);
+
+  TrafficClass* mediumPriority = new TrafficClass();
+  mediumPriority->SetPriorityLevel(1);
+
+  TrafficClass* lowPriority = new TrafficClass();
+  lowPriority->SetPriorityLevel(2);
+
+  // Add one packet to each class
+  Ptr<Packet> pktHigh = Create<Packet>(10);
+  Ptr<Packet> pktMed = Create<Packet>(10);
+  Ptr<Packet> pktLow = Create<Packet>(10);
+
+  highPriority->Enqueue(pktHigh);
+  mediumPriority->Enqueue(pktMed);
+  lowPriority->Enqueue(pktLow);
+
+  // Create SPQ and add queues
+  SPQ spq;
+  spq.AddQueue(lowPriority);
+  spq.AddQueue(mediumPriority);
+  spq.AddQueue(highPriority);  // out of order on purpose
+
+  // Expect schedule to return the highest priority (0)
+  Ptr<const Packet> scheduled = spq.Schedule();
+  if (scheduled != pktHigh)
+  {
+    std::cout << "\tFAILED: SPQ did not return highest-priority packet." << std::endl;
+    return false;
+  }
+
+  std::cout << "\tPASSED: SPQ scheduled the correct highest-priority packet." << std::endl;
   return true;
 }
