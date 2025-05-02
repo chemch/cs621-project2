@@ -36,7 +36,6 @@ public:
 
     /** 
      * \brief Remove a packet from the DiffServ queue.
-     * \returns The removed packet.
      */
     Ptr<Packet> Remove() override;
 

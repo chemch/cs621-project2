@@ -41,7 +41,6 @@ void TrafficClass::SetIsDefault(bool default_queue)
  */
 bool TrafficClass::Enqueue(Ptr<Packet> pkt)
 {
-    NS_LOG_FUNCTION(this);
 
     // Ensure the packet count is less than max
     if (m_packets < m_maxPackets)
@@ -49,11 +48,9 @@ bool TrafficClass::Enqueue(Ptr<Packet> pkt)
         m_queue.push(pkt);
         m_packets++;
 
-        NS_LOG_DEBUG("Packet enqueued. Current size: " << m_queue.size());
         return true;
     }
 
-    NS_LOG_WARN("Queue at capacity.");
     return false;
 }
 
@@ -63,17 +60,17 @@ bool TrafficClass::Enqueue(Ptr<Packet> pkt)
  */
 Ptr<Packet> TrafficClass::Dequeue()
 {
-    NS_LOG_FUNCTION(this);
-
     // Return null pointer on empty queue
     if (m_queue.empty())
     {
-        NS_LOG_WARN("Be aware that the queue is empty.");
+        std::cout << "Be aware that the queue is empty." << std::endl;
         return nullptr;
     }
 
     // Dequeue the packet and update the packet count
     Ptr<Packet> pkt = m_queue.front();
+
+    // Pop the packet from the queue and decrement the packet count
     m_queue.pop();
     m_packets--;
     
@@ -86,8 +83,17 @@ Ptr<Packet> TrafficClass::Dequeue()
  */
 bool TrafficClass::IsEmpty() const
 {
-    NS_LOG_FUNCTION(this);
     return m_packets == 0;
+}
+
+/**
+ * Getter for m_queue's size
+ * \returns number of packets in m_queues
+ */
+uint32_t
+TrafficClass::GetSize()
+{
+    return m_queue.size();
 }
 
 /**
@@ -96,7 +102,6 @@ bool TrafficClass::IsEmpty() const
  */
 std::vector<Filter*> TrafficClass::GetFilters() const
 {
-    NS_LOG_FUNCTION(this);
     return m_filters;
 }
 
@@ -132,12 +137,10 @@ TrafficClass::GetMaxPackets() const
  */
 Ptr<Packet> TrafficClass::Peek() const
 {
-    NS_LOG_FUNCTION(this);
 
     // Return null pointer on empty queue
     if (IsEmpty())
     {
-        NS_LOG_WARN("Queue is empty.");
         return nullptr;
     }
 
@@ -212,7 +215,6 @@ uint32_t TrafficClass::GetPriorityLevel() const
  */
 bool TrafficClass::Match(Ptr<Packet> pkt) const
 {
-    NS_LOG_FUNCTION(this);
 
     // If not filters, always match
     if (m_filters.empty())
@@ -229,6 +231,5 @@ bool TrafficClass::Match(Ptr<Packet> pkt) const
         }
     }
 
-    NS_LOG_WARN("No filters matched.");
     return false;
 }

@@ -17,6 +17,7 @@ public:
 
 private:
   // Individual Tests
+  bool TestBasicEnqueueDequeuePeekRemove();
   bool TestDestinationIPAddress();
   bool TestSourceIPAddress();
   bool TestSourcePortNumber();
@@ -28,6 +29,7 @@ private:
   bool TestTrafficClass();
   bool TestDiffServ();
   bool TestSPQ();
+  bool TestDRR();
 };
 
 } // namespace ns3

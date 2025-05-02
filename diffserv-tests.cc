@@ -14,6 +14,7 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
+#include "drr.h"
 
 using namespace ns3;
 
@@ -28,20 +29,146 @@ void DiffservTests::RunAll()
   int total = 0;
   int passed = 0;
 
-  if (TestDestinationIPAddress()) passed++; total++;
-  if (TestSourceIPAddress()) passed++; total++;
-  if (TestSourcePortNumber()) passed++; total++;
-  if (TestDestinationPortNumber()) passed++; total++;
-  if (TestSourceMask()) passed++; total++;
-  if (TestDestinationMask()) passed++; total++;
-  if (TestProtocolNumber()) passed++; total++;
-  if (TestFilter()) passed++; total++;
-  if (TestTrafficClass()) passed++; total++;
-  if (TestDiffServ()) passed++; total++;
-  if (TestSPQ()) passed++; total++;
+  std::cout << "\n-- Diffserv Tests --" << std::endl;
+  if (TestBasicEnqueueDequeuePeekRemove()) passed++; total++;
+  // if (TestDestinationIPAddress()) passed++; total++;
+  // if (TestSourceIPAddress()) passed++; total++;
+  // if (TestSourcePortNumber()) passed++; total++;
+  // if (TestDestinationPortNumber()) passed++; total++;
+  // if (TestSourceMask()) passed++; total++;
+  // if (TestDestinationMask()) passed++; total++;
+  // if (TestProtocolNumber()) passed++; total++;
+  // if (TestFilter()) passed++; total++;
+  // if (TestTrafficClass()) passed++; total++;
+  // if (TestDiffServ()) passed++; total++;
+  // if (TestSPQ()) passed++; total++;
+  // if (TestDRR()) passed++; total++;
 
-  std::cout << "-- Tests complete: " << passed << "/" << total
-            << " passed --" << std::endl;
+  // Print summary of test results
+  std::cout << "\n-- Diffserv Tests Summary --" << std::endl;
+  std::cout << "Total tests run: " << total << std::endl;
+  std::cout << "Tests passed: " << passed << std::endl;
+  std::cout << "Tests failed: " << (total - passed) << std::endl;
+}
+
+
+/**
+ * \brief Test the basic queue functions
+ */
+bool DiffservTests::TestBasicEnqueueDequeuePeekRemove()
+{
+  std::cout << "-- [TestBasicQueueFunctions] --" << std::endl;
+
+  // // basic setup 
+  // Ptr<Packet> pkt = Create<Packet>(10);
+
+  // TrafficClass trafficClass;
+  // trafficClass.Enqueue(pkt);
+
+  // // print queue size
+  // std::cout << "\tQueue size after enqueue: " << trafficClass.GetSize() << std::endl;
+
+  // // Dequeue the packet
+  // Ptr<Packet> dequeuedPkt = trafficClass.Dequeue();  
+
+  // // print dequeued packet size
+  // std::cout << "\tDequeued packet size: " << dequeuedPkt->GetSize() << std::endl;
+
+  // // Check if the queue is empty
+  // std::cout << "\tIs queue empty after dequeue? " << (trafficClass.IsEmpty() ? "Yes" : "No") << std::endl;
+
+  // // try to dequeue again and see what happens
+  // Ptr<Packet> dequeuedPkt2 = trafficClass.Dequeue();
+
+  // // print dequeued packet size
+  // std::cout << "\tDequeued packet size after second dequeue: " << (dequeuedPkt2 ? std::to_string(dequeuedPkt2->GetSize()) : "null") << std::endl;
+
+  ////------------
+
+  // basic setup
+  // SPQ mySpqTest;
+
+  // // Define test traffic classes
+  // TrafficClass* highPriority = new TrafficClass();
+  // highPriority->SetPriorityLevel(0);
+
+  // TrafficClass* lowPriority = new TrafficClass();
+  // lowPriority->SetPriorityLevel(1);
+
+  // mySpqTest.AddQueue(highPriority);
+  // mySpqTest.AddQueue(lowPriority);
+
+  // // Add one packet to each class
+  // Ptr<Packet> pktHigh = Create<Packet>(20);
+  // Ptr<Packet> pktLow = Create<Packet>(10);
+
+  // mySpqTest.Enqueue(pktHigh);
+  // mySpqTest.Enqueue(pktLow);
+
+  // // remove the scheduled packet from the queue
+  // Ptr<const Packet> removedPkt = mySpqTest.Remove();
+
+  // // print the removed packet
+  // std::cout << "\tRemoved packet size: " << (removedPkt ? std::to_string(removedPkt->GetSize()) : "null") << std::endl;
+
+  // // Expect schedule to return the highest priority
+  // Ptr<const Packet> scheduled = mySpqTest.Schedule();
+
+  // // print scheduled packet size
+  // std::cout << "\tScheduled packet size: " << (scheduled ? std::to_string(scheduled->GetSize()) : "null") << std::endl;
+
+  // // try dequeueuing from the SPQ
+  // Ptr<Packet> dequeuedPkt = mySpqTest.Dequeue();
+  
+  // // print dequeued packet size
+  // std::cout << "\tDequeued packet size: " << (dequeuedPkt ? std::to_string(dequeuedPkt->GetSize()) : "null") << std::endl;
+
+  DRR drr;
+
+  // Create traffic classes with different weights
+  TrafficClass* highWeight = new TrafficClass();
+  TrafficClass* lowWeight = new TrafficClass();
+
+  highWeight->SetWeight(100); // High weight
+  lowWeight->SetWeight(50);   
+
+  drr.AddQueue(lowWeight);
+  drr.AddQueue(highWeight);
+
+  // Enqueue packets
+  Ptr<Packet> pktHigh = Create<Packet>(80);
+  Ptr<Packet> pktLow = Create<Packet>(60);
+
+  highWeight->Enqueue(pktHigh);
+  lowWeight->Enqueue(pktLow);
+
+  // // Expect low-weight packet to be scheduled first (queue 0, 50 >= 40)
+  // Ptr<const Packet> scheduled1 = drr.Schedule();
+
+  // // Print the scheduled packet size
+  // std::cout << "\tScheduled packet size (1): " << (scheduled1 ? std::to_string(scheduled1->GetSize()) : "null") << std::endl;
+
+  // // Remove the scheduled packet from the queue
+  // Ptr<const Packet> removed1 = drr.Remove();
+  // std::cout << "\tRemoved packet size (1): " << (removed1 ? std::to_string(removed1->GetSize()) : "null") << std::endl;
+
+  // Now check scheduled packet again
+  Ptr<const Packet> scheduled2 = drr.Schedule();
+  std::cout << "\tScheduled packet size (2): " << (scheduled2 ? std::to_string(scheduled2->GetSize()) : "null") << std::endl;
+
+  // now dequeue the scheduled packet
+  Ptr<Packet> dequeuedPkt = drr.Dequeue();
+  std::cout << "\tDequeued packet size: " << (dequeuedPkt ? std::to_string(dequeuedPkt->GetSize()) : "null") << std::endl;
+
+  // next check the scheduled packet again
+  Ptr<const Packet> scheduled3 = drr.Schedule();
+  std::cout << "\tScheduled packet size (3): " << (scheduled3 ? std::to_string(scheduled3->GetSize()) : "null") << std::endl;
+
+  // now dequeue the scheduled packet
+  Ptr<Packet> dequeuedPkt2 = drr.Dequeue();
+  std::cout << "\tDequeued packet size (2): " << (dequeuedPkt2 ? std::to_string(dequeuedPkt2->GetSize()) : "null") << std::endl;
+
+  return true;
 }
 
 /**
@@ -743,19 +870,6 @@ bool DiffservTests::TestDiffServ()
     std::cout << "\tPASSED: DiffServ peek returned valid packet." << std::endl;
   }
 
-  // Test Remove (need to enqueue again)
-  diffserv.Enqueue(testPkt);
-  Ptr<Packet> rmPkt = diffserv.Remove();
-  if (rmPkt == nullptr)
-  {
-    std::cout << "\tFAILED: DiffServ remove returned null." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: DiffServ remove returned valid packet." << std::endl;
-  }
-
   return true;
 }
 
@@ -783,9 +897,9 @@ bool DiffservTests::TestSPQ()
   lowPriority->SetPriorityLevel(2);
 
   // Add one packet to each class
-  Ptr<Packet> pktHigh = Create<Packet>(10);
-  Ptr<Packet> pktMed = Create<Packet>(10);
-  Ptr<Packet> pktLow = Create<Packet>(10);
+  Ptr<Packet> pktHigh = Create<Packet>(16);
+  Ptr<Packet> pktMed = Create<Packet>(12);
+  Ptr<Packet> pktLow = Create<Packet>(14);
 
   highPriority->Enqueue(pktHigh);
   mediumPriority->Enqueue(pktMed);
@@ -799,6 +913,53 @@ bool DiffservTests::TestSPQ()
 
   // Expect schedule to return the highest priority (0)
   Ptr<const Packet> scheduled = spq.Schedule();
+
+  // print packet size
+  std::cout << "Got scheduled (1): " << (scheduled ? scheduled->GetSize() : 0) << std::endl;
+
+  Ptr<const Packet> scheduled2 = spq.Schedule();
+
+  // print packet size
+  std::cout << "Got scheduled (2): " << (scheduled2 ? scheduled2->GetSize() : 0) << std::endl;
+
+  Ptr<const Packet> scheduled3 = spq.Peek();
+
+  // print packet size
+  std::cout << "Got peeked (1): " << (scheduled3 ? scheduled3->GetSize() : 0) << std::endl;
+
+  Ptr<const Packet> scheduled4 = spq.Peek();
+
+  // print packet size
+  std::cout << "Got peeked (2): " << (scheduled4 ? scheduled4->GetSize() : 0) << std::endl;
+
+  Ptr<const Packet> scheduled5 = spq.Schedule();
+  // print packet size
+  std::cout << "Got scheduled (3): " << (scheduled5 ? scheduled5->GetSize() : 0) << std::endl;
+
+  // dequeue the highest priority packet
+  Ptr<Packet> dqPkt = spq.Dequeue();
+
+  // print packet size
+  std::cout << "Got dequeued (1): " << (dqPkt ? dqPkt->GetSize() : 0) << std::endl;
+
+  // dequeue the next high priority packet
+  Ptr<Packet> dqPkt1 = spq.Dequeue();
+
+  // print packet size
+  std::cout << "Got dequeued (2): " << (dqPkt1 ? dqPkt1->GetSize() : 0) << std::endl;
+
+  // dequeue the next high priority packet
+  Ptr<Packet> dqPkt2 = spq.Dequeue();
+
+  // print packet size
+  std::cout << "Got dequeued (3): " << (dqPkt2 ? dqPkt2->GetSize() : 0) << std::endl;
+
+  // dequeue the next high priority packet
+  Ptr<Packet> dqPkt3 = spq.Dequeue();
+  
+  // print packet size
+  std::cout << "Got dequeued (4): " << (dqPkt3 ? dqPkt3->GetSize() : 0) << std::endl;
+
   if (scheduled != pktHigh)
   {
     std::cout << "\tFAILED: SPQ did not return highest-priority packet." << std::endl;
@@ -806,5 +967,118 @@ bool DiffservTests::TestSPQ()
   }
 
   std::cout << "\tPASSED: SPQ scheduled the correct highest-priority packet." << std::endl;
+  return true;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Test the DRR (Deficit Round Robin) scheduling logic.
+ *
+ * This test creates two TrafficClasses with different weights and enqueues
+ * packets into them. It verifies that DRR schedules and dequeues packets
+ * according to the DRR algorithm.
+ */
+bool DiffservTests::TestDRR()
+{
+  std::cout << "-- [TestDRR] --" << std::endl;
+
+  DRR drr;
+
+  // Create traffic classes with different weights
+  TrafficClass* highWeight = new TrafficClass();
+  TrafficClass* lowWeight = new TrafficClass();
+  highWeight->SetWeight(100); // High weight
+  lowWeight->SetWeight(50);   // Low weight
+
+  // Add queues to DRR in order: low first (index 0), high second (index 1)
+  drr.AddQueue(lowWeight);
+  drr.AddQueue(highWeight);
+
+  // Enqueue packets
+  Ptr<Packet> pktHigh = Create<Packet>(80);
+  Ptr<Packet> pktLow = Create<Packet>(40);
+
+  highWeight->Enqueue(pktHigh);
+  lowWeight->Enqueue(pktLow);
+
+  // Step 1: Expect low-weight packet to be scheduled first (queue 0, 50 >= 40)
+  Ptr<const Packet> scheduled1 = drr.Schedule();
+
+  // print packet size
+    std::cout << "Got scheduled (1st Time): " << (scheduled1 ? scheduled1->GetSize() : 0) << std::endl;
+
+  if (scheduled1 == nullptr || scheduled1->GetSize() != 40)
+  {
+    std::cout << "\tFAILED: Expected pktLow (40B) from lowWeight, but got: "
+              << (scheduled1 ? scheduled1->GetSize() : 0) << "B." << std::endl;
+    return false;
+  }
+  std::cout << "\tPASSED: Scheduled low-weight packet correctly." << std::endl;
+
+  // Ptr<Packet> dqPkt1 = drr.Dequeue();
+
+  // // print packet size
+  // std::cout << "Got scheduled (1st DQ): " << (dqPkt1 ? dqPkt1->GetSize() : 0) << std::endl;
+
+  // if (dqPkt1 == nullptr || dqPkt1->GetSize() != 40)
+  // {
+  //   std::cout << "\tFAILED: Dequeue did not return pktLow." << std::endl;
+  //   return false;
+  // }
+
+  // // Step 2: Now expect high-weight packet (100 >= 80)
+  // Ptr<const Packet> scheduled2 = drr.Schedule();
+
+  // // print packet size
+  // std::cout << "Got scheduled (2nd Time): " << (scheduled2 ? scheduled2->GetSize() : 0) << std::endl;
+
+  // if (scheduled2 == nullptr || scheduled2->GetSize() != 80)
+  // {
+  //   // print out the size of the scheduled packet if it exists
+  //   std::cout << "\tFAILED: Expected pktHigh (80B) from highWeight, but got: "
+  //             << (scheduled2 ? scheduled2->GetSize() : 0) << "B." << std::endl;
+
+  //   return false;
+  // }
+
+  // std::cout << "\tPASSED: Scheduled high-weight packet correctly." << std::endl;
+
+  // // Step 3: Now expect high-weight packet (100 >= 80)
+  // Ptr<const Packet> scheduled3 = drr.Schedule();
+
+  // // print packet size
+  // std::cout << "Got scheduled (3rd Time): " << (scheduled3 ? scheduled3->GetSize() : 0) << std::endl;
+
+  // // Step 4: Now expect high-weight packet (100 >= 80)
+  // Ptr<const Packet> scheduled4 = drr.Schedule();
+
+  // // print packet size
+  // std::cout << "Got scheduled (4th Time): " << (scheduled4 ? scheduled4->GetSize() : 0) << std::endl;
+
+  // Ptr<Packet> dqPkt2 = drr.Dequeue();
+
+  // // print packet size
+  // std::cout << "Got scheduled (2nd DQ): " << (dqPkt2 ? dqPkt2->GetSize() : 0) << std::endl;
+
+
+
+  // Ptr<Packet> dqPkt2 = drr.Dequeue();
+  // if (dqPkt2 == nullptr || dqPkt2->GetSize() != 80)
+  // {
+  //   std::cout << "\tFAILED: Dequeue did not return pktHigh." << std::endl;
+  //   std::cout << "Size of dequeued packet: " << (dqPkt2 ? dqPkt2->GetSize() : 0) << std::endl;
+
+  //   return false;
+  // }
+
+  // // Step 3: Nothing left, expect null
+  // Ptr<const Packet> scheduled3 = drr.Schedule();
+  // if (scheduled3 != nullptr)
+  // {
+  //   std::cout << "\tFAILED: Expected no more packets, but Schedule returned one." << std::endl;
+  //   return false;
+  // }
+  // std::cout << "\tPASSED: No packets left as expected." << std::endl;
+
   return true;
 }

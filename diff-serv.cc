@@ -31,8 +31,8 @@ Ptr<const Packet> DiffServ::ExecutePeek() const
 }
 
 /**
- * * \brief Destructor for DiffServ class
- * * \details Cleans up the DiffServ class and logs the destruction.
+ * * \brief Constructor for DiffServ class
+ * * \details Sets up the DiffServ class.
  */
 bool DiffServ::Enqueue(Ptr<Packet> pkt)
 {
@@ -40,11 +40,7 @@ bool DiffServ::Enqueue(Ptr<Packet> pkt)
 }
 
 
-/** 
- * * \brief Enqueues a packet into the appropriate queue based on its classification.
- * * \details This function classifies the packet and enqueues it into the corresponding queue.
- * * \param pkt The packet to be enqueued.
- */
+
 Ptr<Packet> DiffServ::Dequeue()
 {
     return ExecuteDequeue();
@@ -112,6 +108,7 @@ std::vector<TrafficClass*> DiffServ::GetQueues() const
  */
 bool DiffServ::ExecuteEnqueue(Ptr<Packet> pkt)
 {
+
     // Get the index of the queue to which the packet belongs
     uint32_t index = Classify(pkt);
 
@@ -120,6 +117,9 @@ bool DiffServ::ExecuteEnqueue(Ptr<Packet> pkt)
     {
         return false;
     }
+
+    // Print the queue index
+    std::cout << "Match Found: Queue index to Enqueue Into: " << index << std::endl;
 
     // Otherwise, enqueue the packet into the appropriate queue
     return q_class[index]->Enqueue(pkt);
@@ -134,9 +134,13 @@ Ptr<Packet> DiffServ::ExecuteDequeue()
     Ptr<const Packet> scheduledPkt = Schedule();
 
     // If the scheduledPkt packet is not null, classify it and dequeue from the corresponding queue
-    if (scheduledPkt != nullptr)
+    if (scheduledPkt)
     {
         uint32_t index = Classify(scheduledPkt->Copy());
+
+        // print queue index
+        std::cout << "Queue index to Dequeue From: " << index << std::endl;
+
         if (index < q_class.size())
         {
             return q_class[index]->Dequeue();

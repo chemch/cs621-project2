@@ -60,6 +60,8 @@ public:
     void SetFilters(const std::vector<Filter*>& filters);
     void AddFilter(Filter* filter);
 
+    uint32_t GetSize();
+
     /** 
      * Queue Operations - Important!
      */
