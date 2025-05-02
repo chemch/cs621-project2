@@ -195,7 +195,6 @@ double TrafficClass::GetWeight() const
  */
 void TrafficClass::SetPriorityLevel(uint32_t lvl)
 {
-    NS_LOG_FUNCTION(this);
     m_priorityLevel = lvl;
 }
 
@@ -215,7 +214,6 @@ uint32_t TrafficClass::GetPriorityLevel() const
  */
 bool TrafficClass::Match(Ptr<Packet> pkt) const
 {
-
     // If not filters, always match
     if (m_filters.empty())
     {

@@ -17,7 +17,7 @@ public:
 
 private:
   // Individual Tests
-  bool TestBasicEnqueueDequeuePeekRemove();
+  bool TestQueueDequeue();
   bool TestDestinationIPAddress();
   bool TestSourceIPAddress();
   bool TestSourcePortNumber();

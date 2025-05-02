@@ -32,6 +32,29 @@ Ptr<Packet> DRR::Dequeue()
     return pkt;
 }
 
+Ptr<Packet> DRR::Remove()
+{
+    std::vector<TrafficClass*> queues = GetQueues();
+    if (next_active_queue >= queues.size() || queues[next_active_queue]->IsEmpty())
+    {
+        std::cout << "Active queue is invalid or empty during Remove." << std::endl;
+        return nullptr;
+    }
+
+    Ptr<Packet> pkt = queues[next_active_queue]->Dequeue(); 
+
+    if (pkt != nullptr)
+    {
+        std::cout << "Got removed: " << pkt->GetSize() << std::endl;
+        std::cout << "Removed from queue index: " << next_active_queue << std::endl;
+
+        active_queue = next_active_queue;
+        deficit_counter = next_deficit_counter;
+    }
+
+    return pkt;
+}
+
 /**
  * Finds the next scheduled packet by looping through the TrafficClasses
  * in q_class. The next scheduled packet will be from the first queue that

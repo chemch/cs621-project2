@@ -24,6 +24,8 @@ public:
      */
     Ptr<Packet> Dequeue() override;
 
+    Ptr<Packet> Remove() override;
+
     /**
      * \brief Select the next packet to be dequeued based on DRR.
      * \returns Ptr<const Packet> packet at the front of the scheduled queue.
