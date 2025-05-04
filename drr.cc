@@ -22,8 +22,8 @@ Ptr<Packet> DRR::Dequeue()
 
     if (pkt != nullptr)
     {
-        std::cout << "Got dequeued: " << pkt->GetSize() << std::endl;
-        std::cout << "Dequeued from queue index: " << next_active_queue << std::endl;
+        // std::cout << "Got dequeued: " << pkt->GetSize() << std::endl;
+        // std::cout << "Dequeued from queue index: " << next_active_queue << std::endl;
 
         active_queue = next_active_queue;
         deficit_counter = next_deficit_counter;

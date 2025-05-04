@@ -62,8 +62,6 @@ public:
      */
     virtual Ptr<const Packet> Schedule() const = 0;
 
-
-protected:
     std::vector<TrafficClass*> GetQueues() const;
 
 private:

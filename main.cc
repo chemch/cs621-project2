@@ -1,44 +1,85 @@
-#include "ns3/core-module.h"
 #include "diffserv-tests.h"
+#include "simulation.h"            // <-- declares InitializeTopology
+#include <iostream>
+#include <fstream>
+#include <string>
+#include "json.hpp"
+#include "ns3/simulator.h"
+#include "ns3/core-module.h"  // (optional but often useful)
 
 using namespace ns3;
+using json = nlohmann::json;
 
-/**
- * \ingroup diffserv
- * \brief Main function for the Diffserv simulation.
- *
- * This function sets up the command line arguments and runs the Diffserv simulation.
- *
- * \param argc The number of command line arguments.
- * \param argv The command line arguments.
- * \returns 0 on success, non-zero on failure.
- */
-int main(int argc, char *argv[])
+void RunSimulation(const std::string& configFile)
 {
-  // Default to not run tests
-  bool runTests = false;
-  
-  // Parse the command line arguments
-  CommandLine cmd;
-  cmd.AddValue("runTests", "Run unit tests (true/false)", runTests);
-  cmd.Parse(argc, argv);
+    Simulation sim;
 
-  // Run unit tests if specified via command line
-  if (runTests)
-  {
-    std::cout << "\n- Running Unit Tests -" << std::endl;
+    if (sim.parseConfigs(configFile))
+    {
+        std::cerr << "Failed to parse QoS config." << std::endl;
+        return;
+    }
+    else
+    {
+        std::cout << "-- Parsed QoS Config --" << std::endl;
+        sim.PrintConfig();
+    }
 
-    // Create an instance of DiffservTests
-    // and run all tests
-    DiffservTests tests;
-    tests.RunAll();
+    std::cout << "-- Initializing QoS Mechanism --" << std::endl;
+    sim.InitializeQOSMechanism();
+
+    std::cout << "-- Building Topology --" << std::endl;
+    sim.InitializeTopology();
+
+    std::cout << "-- Starting UDP Applications --" << std::endl;
+    sim.InitializeUDPApplication();
+
+    std::cout << "-- Starting Simulation --" << std::endl;
+    Simulator::Stop(Seconds(40.0));
+    Simulator::Run();
+    std::cout << "-- Simulation Time: " << Simulator::Now().GetSeconds() << " seconds" << std::endl;
+    std::cout << "-- Simulation Statistics --" << std::endl;
+    std::cout << "  - Total Packets Sent: " << sim.data.max_packets[0] + sim.data.max_packets[1] << std::endl;
+    std::cout << "  - Total Packets Received: " << sim.data.max_packets[0] + sim.data.max_packets[1] << std::endl;
+
+    std::cout << "-- Simulation Finished --" << std::endl;
+    std::cout << "-- Cleaning Up --" << std::endl;
+    Simulator::Destroy();
+}
+
+int main(int argc, char* argv[])
+{
+    if (argc < 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <runMode> [configFile]" << std::endl;
+        return 1;
+    }
+
+    std::string runMode = argv[1];
+
+    if (runMode == "test")
+    {
+        std::cout << "-- Diffserv Tests --" << std::endl;
+        DiffservTests tests;
+        tests.RunAll();
+    }
+    else if (runMode == "sim")
+    {
+        if (argc < 3)
+        {
+            std::cerr << "Missing config file for simulation mode." << std::endl;
+            return 1;
+        }
+
+        std::string configFile = argv[2];
+        std::cout << "-- Simulation Mode --" << std::endl;
+        RunSimulation(configFile);
+    }
+    else
+    {
+        std::cerr << "Unknown run mode: " << runMode << std::endl;
+        return 1;
+    }
 
     return 0;
-  }
-  else
-  {
-    std::cout << "\n- Running Simulation -" << std::endl;
-
-    return 0;
-  }
 }

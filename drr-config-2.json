@@ -1,0 +1,28 @@
+{
+    "QoS": {
+      "Name": "DRR",
+      "Queues": [
+        {
+          "no": 1,
+          "MaxPackets": 12000,
+          "Weight": 10,
+          "Default": true,
+          "DestPort": 6000
+        },
+        {
+          "no": 2,
+          "MaxPackets": 12000,
+          "Weight": 20,
+          "Default": false,
+          "DestPort": 7000
+        },
+        {
+          "no": 3,
+          "MaxPackets": 12000,
+          "Weight": 400,
+          "Default": false,
+          "DestPort": 9000
+        }
+      ]
+    }
+  }

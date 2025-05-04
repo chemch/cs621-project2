@@ -119,7 +119,7 @@ bool DiffServ::ExecuteEnqueue(Ptr<Packet> pkt)
     }
 
     // Print the queue index
-    std::cout << "Match Found: Queue index to Enqueue Into: " << index << std::endl;
+    // std::cout << "Match Found: Queue index to Enqueue Into: " << index << std::endl;
 
     // Otherwise, enqueue the packet into the appropriate queue
     return q_class[index]->Enqueue(pkt);
@@ -139,7 +139,7 @@ Ptr<Packet> DiffServ::ExecuteDequeue()
         uint32_t index = Classify(scheduledPkt->Copy());
 
         // print queue index
-        std::cout << "Queue index to Dequeue From: " << index << std::endl;
+        // std::cout << "Queue index to Dequeue From: " << index << std::endl;
 
         if (index < q_class.size())
         {
