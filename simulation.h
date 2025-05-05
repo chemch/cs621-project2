@@ -17,6 +17,8 @@ struct QosData {
     std::vector<uint32_t> dest_ports;
     std::vector<uint32_t> priorities;  // used if SPQ
     std::vector<uint32_t> weights;     // used if DRR
+    std::vector<double> intervals;
+    std::vector<uint32_t> packet_sizes;
     std::vector<bool> defaults;
     uint32_t count;
 };

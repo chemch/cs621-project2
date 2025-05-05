@@ -1,0 +1,21 @@
+{
+    "QoS": {
+      "Name": "SPQ",
+      "Queues": [
+        {
+          "no": 1,
+          "MaxPackets": 12000,
+          "Priority": 2,
+          "Default": true,
+          "DestPort": 4000
+        },
+        {
+          "no": 2,
+          "MaxPackets": 5000,
+          "Priority": 1,
+          "Default": false,
+          "DestPort": 8000
+        }
+      ]
+    }
+  }

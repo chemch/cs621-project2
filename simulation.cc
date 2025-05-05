@@ -166,7 +166,13 @@ void Simulation::InitializeUDPApplication()
 {
     uint32_t maxPacketSize = 1000;
     Time interPacketInterval = Seconds(0.002);
-    uint32_t maxPacketCount = 19000;
+    uint32_t maxPacketCount = 15000;
+
+     // Add timestamp to pcap file names
+    auto now = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(now);
+    std::ostringstream timestamp;
+    timestamp << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S");
 
     if (data.name == "SPQ") {
         UdpServerHelper server1(data.dest_ports[0]);
@@ -181,12 +187,12 @@ void Simulation::InitializeUDPApplication()
         apps2.Stop(Seconds(40.0));
 
         UdpClientHelper client1(interfaces2.GetAddress(1), data.dest_ports[0]);
-        client1.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+        client1.SetAttribute("MaxPackets", UintegerValue(data.max_packets[0]));
         client1.SetAttribute("Interval", TimeValue(interPacketInterval));
         client1.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
 
         UdpClientHelper client2(interfaces2.GetAddress(1), data.dest_ports[1]);
-        client2.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+        client2.SetAttribute("MaxPackets", UintegerValue(data.max_packets[1]));
         client2.SetAttribute("Interval", TimeValue(interPacketInterval));
         client2.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
 
@@ -211,27 +217,32 @@ void Simulation::InitializeUDPApplication()
         std::cout << "Client 1 Interval: " << interPacketInterval.GetSeconds() << " seconds" << std::endl;
         std::cout << "Client 2 Interval: " << interPacketInterval.GetSeconds() << " seconds" << std::endl;
 
-        pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_SPQ", devices1.Get(1));
-        pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_SPQ", devices2.Get(0));
+        pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_SPQ_" + timestamp.str(), devices1.Get(1));
+        pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_SPQ_" + timestamp.str(), devices2.Get(0));
     }
     else if (data.name == "DRR") {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < data.count; ++i) {
             UdpServerHelper server(data.dest_ports[i]);
             auto app = server.Install(n1);
             app.Start(Seconds(1.0));
             app.Stop(Seconds(40.0));
 
             UdpClientHelper client(interfaces2.GetAddress(1), data.dest_ports[i]);
-            client.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+            client.SetAttribute("MaxPackets", UintegerValue(data.max_packets[i]));
             client.SetAttribute("Interval", TimeValue(interPacketInterval));
             client.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
             auto cApp = client.Install(n0);
             cApp.Start(Seconds(2.0));
             cApp.Stop(Seconds(40.0));
+
+            std::cout << "Client " << i + 1 << ": DestPort=" << data.dest_ports[i]
+                    << ", MaxPackets=" << data.max_packets[i]
+                    << ", Interval=" << interPacketInterval.GetSeconds()
+                    << ", PacketSize=" << maxPacketSize << std::endl;
         }
 
-        pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_DRR", devices1.Get(1));
-        pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_DRR", devices2.Get(0));
+        pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_DRR_" + timestamp.str(), devices1.Get(1));
+        pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_DRR_" + timestamp.str(), devices2.Get(0));
     }
 }
 

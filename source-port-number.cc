@@ -10,7 +10,7 @@ namespace ns3 {
  * \brief Constructor for SourcePortNumber.
  * \param sourcePort The source port number to match.
  */
-SourcePortNumber::SourcePortNumber(uint16_t sourcePort)
+SourcePortNumber::SourcePortNumber(uint32_t sourcePort)
   : m_sourcePort(sourcePort) {}
 
 /**

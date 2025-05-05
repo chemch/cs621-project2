@@ -19,7 +19,7 @@ public:
      * \brief Constructor.
      * \param destinationPort The destination port number to match.
      */
-    DestinationPortNumber(uint16_t destinationPort);
+    DestinationPortNumber(uint32_t destinationPort);
 
     /**
      * \brief Match the packet against the referenced destination port number.
@@ -29,7 +29,7 @@ public:
     bool Match(Ptr<Packet> pkt) const override;
 
 private:
-    uint16_t m_destinationPort;
+    uint32_t m_destinationPort;
 };
 
 } // namespace ns3

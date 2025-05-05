@@ -133,6 +133,7 @@ void DRR::AddQueue(TrafficClass* trafficClass)
 
     // Initialize its deficit counter to 0
     deficit_counter.push_back(0);
+    next_deficit_counter.push_back(0);
 }
 
 } // namespace ns3

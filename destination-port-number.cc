@@ -2,6 +2,7 @@
 #include "ns3/tcp-header.h"
 #include "ns3/udp-header.h"
 #include "destination-port-number.h"
+#include "ns3/ppp-header.h"
 
 namespace ns3 {
 
@@ -10,7 +11,7 @@ namespace ns3 {
  * \brief Constructor for DestinationPortNumber.
  * \param destinationPort The destination port number to match.
  */
-DestinationPortNumber::DestinationPortNumber(uint16_t destinationPort)
+DestinationPortNumber::DestinationPortNumber(uint32_t destinationPort)
   : m_destinationPort(destinationPort) {}
 
 /**
@@ -19,12 +20,19 @@ DestinationPortNumber::DestinationPortNumber(uint16_t destinationPort)
  * \param pkt The packet to inspect.
  * \returns true if the destination port matches, else false.
  */
-bool
-DestinationPortNumber::Match(Ptr<Packet> pkt) const
+bool DestinationPortNumber::Match(Ptr<Packet> pkt) const
 {
     // Make a copy of the packet to avoid modifying the original
     Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
+
+    PppHeader pppHeader;
+    // Remove the PPP header
+    if (!packetCopy->RemoveHeader(pppHeader))
+    {
+        std::cout << "Failed to remove PPP header" << std::endl;
+        return false;
+    }
 
     // If we're unable to remove the IPv4 header, return false
     if (!packetCopy->RemoveHeader(ipv4Header))

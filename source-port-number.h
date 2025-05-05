@@ -19,7 +19,7 @@ public:
      * \brief Constructor.
      * \param sourcePort The source port number to match.
      */
-    SourcePortNumber(uint16_t sourcePort);
+    SourcePortNumber(uint32_t sourcePort);
 
     /**
      * \brief Match the packet against the referenced source port number.
@@ -29,7 +29,7 @@ public:
     bool Match(Ptr<Packet> pkt) const override;
 
 private:
-    uint16_t m_sourcePort;
+    uint32_t m_sourcePort;
 };
 
 } // namespace ns3
