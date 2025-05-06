@@ -13,6 +13,9 @@ using namespace ns3;
 // Include necessary headers for JSON parsing
 using json = nlohmann::json;
 
+// Define constants for the simulation
+static constexpr double SIM_DURATION = 40.0;
+
 /**
  * \brief Run the simulation based on the provided configuration file.
  * \param configFile The path to the configuration file.
@@ -48,7 +51,7 @@ void RunSimulation(const std::string& configFile)
     std::cout << "-- Starting Simulation --" << std::endl;
 
     // Set the max simulation time
-    Simulator::Stop(Seconds(40.0));
+    Simulator::Stop(Seconds(SIM_DURATION));
 
     // Kick off the simulation
     Simulator::Run();

@@ -13,6 +13,11 @@ namespace ns3 {
     // Define constants for packet size and interval
     const Time Simulation::PACKET_TRANS_INTERVAL = Seconds(0.002);
 
+    // Define constants for the stop, start and interval times
+    static constexpr double STOP_TIME        = 40.0;
+    static constexpr double SERVER_START     = 1.0;
+    static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 12.0 };
+
     /** 
      * 
      * \brief Enable pcap tracing for the simulation.
@@ -328,7 +333,7 @@ namespace ns3 {
                 auto _application = server.Install(allNodesContainer.Get(2));
 
                 // Set the server to start and stop at specific times
-                _application.Start(Seconds(1.0));
+                _application.Start(Seconds(SERVER_START));
                 _application.Stop(Seconds(40.0));
 
                 // Add the server application to the container
@@ -353,8 +358,8 @@ namespace ns3 {
                 auto apps = client.Install(allNodesContainer.Get(0));
 
                 // Set the client to start and stop at specific times
-                apps.Start(Seconds(2.0));
-                apps.Stop(Seconds(40.0));
+                apps.Start(Seconds(CLIENT_START_OFFSETS[0]));
+                apps.Stop(Seconds(STOP_TIME));
 
                 // Add the client application to the container
                 // This is done to set up the client applications for each queue
@@ -375,11 +380,7 @@ namespace ns3 {
      */
     void Simulation::InitializeSpqUdpApplication()
     {
-        // Define constants for the stop, start and interval times
-        static constexpr double STOP_TIME        = 40.0;
-        static constexpr double SERVER_START     = 1.0;
-        static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 14.0 };
-
+        // For each destination port, install a UDP server and client
         for (size_t i = 0; i < qosConfig.destinationPorts.size(); ++i)
         {
             uint32_t port = qosConfig.destinationPorts[i];

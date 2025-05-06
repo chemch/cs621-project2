@@ -1,11 +1,10 @@
-#pragma once
+#include <string>
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
-#include <string>
 #include "ns3/net-device.h"           
 
 #include "spq.h"
@@ -98,7 +97,7 @@ namespace ns3 {
 
         // Enable pcap tracing
         // This function enables pcap tracing for the point-to-point links
-        std::pair<std::string, std::string> BuildPcapFileNames(const std::string& sched);
+        static std::pair<std::string, std::string> BuildPcapFileNames(const std::string& sched);
     };
 
 } // namespace ns3
