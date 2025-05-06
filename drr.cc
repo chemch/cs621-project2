@@ -11,18 +11,8 @@ DRR::DRR() : active_queue(0) {}
  */
 Ptr<Packet> DRR::Dequeue()
 {
-    // Log the attempt to dequeue
-    std::cout << "Attempting to dequeue from queue index: " << active_queue << std::endl;
-    std::cout << "Current deficit counter: " << deficit_counter[active_queue] << std::endl;
 
     Ptr<Packet> dequeued_packet = DiffServ::Dequeue();
-
-    // Log the dequeued packet info 
-    if (dequeued_packet)
-    {
-        std::cout << "Dequeued packet size: " << dequeued_packet->GetSize() << std::endl;
-        std::cout << "Dequeued from queue index: " << active_queue << std::endl;
-    }
 
 
     if (dequeued_packet)
@@ -105,10 +95,6 @@ Ptr<const Packet> DRR::Schedule() const
     {
         if (!queues[next_active_queue]->IsEmpty())
         {
-            // log weight and deficit counter
-            std::cout << "Queue index: " << next_active_queue << std::endl;
-            std::cout << "Queue weight: " << queues[next_active_queue]->GetWeight() << std::endl;
-            std::cout << "Deficit counter before: " << next_deficit_counter[next_active_queue] << std::endl;
             
 
             next_deficit_counter[next_active_queue] = queues[next_active_queue]->GetWeight() + next_deficit_counter[next_active_queue];

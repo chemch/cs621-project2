@@ -237,38 +237,67 @@ void Simulation::InitializeUDPApplication()
     }
     else if (data.name == "DRR") {
         // create UdpServer applications on n1
-        UdpServerHelper server1(data.dest_ports[0]);
-        UdpServerHelper server2(data.dest_ports[1]);
+        // UdpServerHelper server1(data.dest_ports[0]);
+        // UdpServerHelper server2(data.dest_ports[1]);
 
-        ApplicationContainer apps1 = server1.Install(all.Get(2));
-        apps1.Start(Seconds(1.0));
-        apps1.Stop(Seconds(40.0));
-        ApplicationContainer apps2 = server2.Install(all.Get(2));
-        apps2.Start(Seconds(1.0));
-        apps2.Stop(Seconds(40.0));
+        // ApplicationContainer apps1 = server1.Install(all.Get(2));
+        // apps1.Start(Seconds(1.0));
+        // apps1.Stop(Seconds(40.0));
+        // ApplicationContainer apps2 = server2.Install(all.Get(2));
+        // apps2.Start(Seconds(1.0));
+        // apps2.Stop(Seconds(40.0));
 
         // create UdpClient applications on n0
         uint32_t maxPacketSize = 1000;
         Time interPacketInterval = Seconds(0.002);
-        uint32_t maxPacketCount = 1000;
 
-        UdpClientHelper client1(interfaces2.GetAddress(1), data.dest_ports[0]);
-        client1.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
-        client1.SetAttribute("Interval", TimeValue(interPacketInterval));
-        client1.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+        // UdpClientHelper client1(interfaces2.GetAddress(1), data.dest_ports[0]);
+        // client1.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+        // client1.SetAttribute("Interval", TimeValue(interPacketInterval));
+        // client1.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
 
-        UdpClientHelper client2(interfaces2.GetAddress(1), data.dest_ports[1]);
-        client2.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
-        client2.SetAttribute("Interval", TimeValue(interPacketInterval));
-        client2.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+        // UdpClientHelper client2(interfaces2.GetAddress(1), data.dest_ports[1]);
+        // client2.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+        // client2.SetAttribute("Interval", TimeValue(interPacketInterval));
+        // client2.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
 
-        apps1 = client1.Install(all.Get(0));
-        apps1.Start(Seconds(2.0));
-        apps1.Stop(Seconds(40.0));
+        // apps1 = client1.Install(all.Get(0));
+        // apps1.Start(Seconds(2.0));
+        // apps1.Stop(Seconds(40.0));
 
-        apps2 = client2.Install(all.Get(0));
-        apps2.Start(Seconds(2.0));
-        apps2.Stop(Seconds(40.0));
+        // apps2 = client2.Install(all.Get(0));
+        // apps2.Start(Seconds(2.0));
+        // apps2.Stop(Seconds(40.0));
+
+        // ----------------------------------------------------------------
+        // 1) Install all your servers on node n1 (all.Get(2)) in a loop
+        // ----------------------------------------------------------------
+        ApplicationContainer serverApps;
+        for (uint32_t i = 0; i < data.count; ++i)
+        {
+            UdpServerHelper server(data.dest_ports[i]);
+            auto apps = server.Install(all.Get(2));
+            apps.Start(Seconds(1.0));
+            apps.Stop(Seconds(40.0));
+            serverApps.Add(apps);
+        }
+
+        // ----------------------------------------------------------------
+        // 2) Install all your clients on node n0 (all.Get(0)) in a loop
+        // ----------------------------------------------------------------
+        ApplicationContainer clientApps;
+        for (uint32_t i = 0; i < data.count; ++i)
+        {
+            UdpClientHelper client(interfaces2.GetAddress(1), data.dest_ports[i]);
+            client.SetAttribute("MaxPackets", UintegerValue(data.max_packets[i]));
+            client.SetAttribute("Interval",  TimeValue(interPacketInterval));
+            client.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+
+            auto apps = client.Install(all.Get(0));
+            apps.Start(Seconds(2.0));
+            apps.Stop(Seconds(40.0));
+            clientApps.Add(apps);
+        }
 
         pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_DRR_" + timestamp.str(), devices1.Get(1));
         pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_DRR_" + timestamp.str(), devices2.Get(0));
