@@ -6,7 +6,6 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
 #include <string>
-#include "ns3/point-to-point-helper.h"
 #include "ns3/net-device.h"           
 
 #include "spq.h"
@@ -62,7 +61,7 @@ namespace ns3 {
         // Initialize the topology
         void InitializeTopology();
 
-        // Set up Qos scheduler (SPQ or DRR)
+        // Set up Qos scheduler (SPQ or )
         void InitializeQosScheduler();
 
         // Queue scheduler construction
@@ -80,8 +79,8 @@ namespace ns3 {
 
     private:
         // Set constant values for packet size and interval
-        uint32_t PACKET_SIZE = 1000;
-        Time PACKET_TRANS_INTERVAL = Seconds(0.002);
+        static constexpr uint32_t PACKET_SIZE = 1000;
+        static const Time     PACKET_TRANS_INTERVAL;
 
         // Node and topology
         Ptr<Node> node0, router0, node1;
@@ -99,7 +98,7 @@ namespace ns3 {
 
         // Enable pcap tracing
         // This function enables pcap tracing for the point-to-point links
-        std::pair<std::string, std::string> MakePcapNames(const std::string& sched);
+        std::pair<std::string, std::string> BuildPcapFileNames(const std::string& sched);
     };
 
 } // namespace ns3

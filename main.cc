@@ -6,8 +6,11 @@
 #include "json.hpp"
 #include "ns3/simulator.h"
 #include "ns3/core-module.h"
+#include "ns3/command-line.h"
 
 using namespace ns3;
+
+// Include necessary headers for JSON parsing
 using json = nlohmann::json;
 
 /**
@@ -62,22 +65,18 @@ void RunSimulation(const std::string& configFile)
  */
 int main(int argc, char* argv[])
 {
-    // Notify the user about the run mode and usage if not provided properly. 
-    if (argc < 2)
-    {
-        std::cerr << "Usage: " << argv[0] << " <runMode> [configFile]" << std::endl;
-        return 1;
-    }
+    std::string runMode;
+    std::string configFile;
 
-    // Get the run mode from command line arguments
-    // The first argument is the run mode (test or sim)
-    std::string runMode = argv[1];
+    ns3::CommandLine cmd;
+    cmd.AddValue ("runMode",    "Mode: \"test\" or \"sim\"", runMode);
+    cmd.AddValue ("configFile", "QoS JSON config (required if runMode==sim)", configFile);
+    cmd.Parse (argc, argv);
 
-    // Check the run mode and execute the corresponding functionality
+    // Check if the run mode is set to "test" or "sim"
     if (runMode == "test")
     {
-        std::cout << "-- Diffserv Tests --" << std::endl;
-
+        // Run the Diffserv tests
         DiffservTests diffServTests;
         diffServTests.RunAll();
     }
@@ -85,23 +84,18 @@ int main(int argc, char* argv[])
     else if (runMode == "sim")
     {
         // Check if the config file is provided
-        if (argc < 3)
+        if (configFile.empty ())
         {
-            std::cerr << "Missing config file for simulation mode." << std::endl;
-            return 1;
+        std::cerr << "Error: --configFile must be set in sim mode\n";
+        return 1;
         }
 
-        // Get the config file from command line arguments
-        std::string configFile = argv[2];
-
-        // Run the simulation with the provided config file
-        std::cout << "-- Simulation Mode --" << std::endl;
-        RunSimulation(configFile);
+        RunSimulation (configFile);
     }
+    // Otherwise, print an error message
     else
     {
-        // If the run mode is not recognized, print an error message
-        std::cerr << "Unknown run mode: " << runMode << std::endl;
+        std::cerr << "Error: --runMode must be \"test\" or \"sim\"\n";
         return 1;
     }
 

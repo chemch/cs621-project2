@@ -10,6 +10,9 @@ using json = nlohmann::json;
 
 namespace ns3 {
 
+    // Define constants for packet size and interval
+    const Time Simulation::PACKET_TRANS_INTERVAL = Seconds(0.002);
+
     /** 
      * 
      * \brief Enable pcap tracing for the simulation.
@@ -17,7 +20,7 @@ namespace ns3 {
      * and the network devices.
      * \param sched The scheduler type (SPQ or DRR).
      */    
-    std::pair<std::string, std::string> Simulation::MakePcapNames(const std::string& sched)
+    std::pair<std::string, std::string> Simulation::BuildPcapFileNames(const std::string& sched)
     {
         // Use std::filesystem to handle file paths
         namespace fs = std::filesystem;
@@ -359,7 +362,7 @@ namespace ns3 {
             }
 
             // Get the file names for pcap tracing
-            auto [preName, postName] = MakePcapNames(qosConfig.qosType);
+            auto [preName, postName] = BuildPcapFileNames(qosConfig.qosType);
 
             // Enable pcap tracing for the point-to-point links
             link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
@@ -408,7 +411,7 @@ namespace ns3 {
         }
 
         // Get the file names for pcap tracing
-        auto [preName, postName] = MakePcapNames(qosConfig.qosType);
+        auto [preName, postName] = BuildPcapFileNames(qosConfig.qosType);
 
         // Enable pcap tracing for the point-to-point links
         link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
