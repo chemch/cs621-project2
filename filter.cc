@@ -42,7 +42,7 @@ namespace ns3 {
      * Adds a filter element to the filter.
      * @param filterElement
      */
-    void Filter::addFilterElement(FilterElement* filterElement) {
+    void Filter::AddFilterElement(FilterElement* filterElement) {
         m_filterElements.push_back(filterElement);
     }
 

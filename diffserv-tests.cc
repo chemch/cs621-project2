@@ -559,8 +559,8 @@ bool DiffservTests::TestFilter()
 
   // Test case where all filter elements match
   Filter filterAllMatch;
-  filterAllMatch.addFilterElement(new TestFilterElement(true));
-  filterAllMatch.addFilterElement(new TestFilterElement(true));
+  filterAllMatch.AddFilterElement(new TestFilterElement(true));
+  filterAllMatch.AddFilterElement(new TestFilterElement(true));
 
   // Should match since all elements are set to true (directly)
   if (!filterAllMatch.Match(pkt))
@@ -575,8 +575,8 @@ bool DiffservTests::TestFilter()
 
   // Test case where one filter element fails
   Filter filterOneFails;
-  filterOneFails.addFilterElement(new TestFilterElement(true));
-  filterOneFails.addFilterElement(new TestFilterElement(false));
+  filterOneFails.AddFilterElement(new TestFilterElement(true));
+  filterOneFails.AddFilterElement(new TestFilterElement(false));
 
   // Should fail since one element is set to false
   if (filterOneFails.Match(pkt))

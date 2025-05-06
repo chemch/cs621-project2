@@ -1,6 +1,6 @@
 {
     "QoS": {
-      "Name": "SPQ",
+      "Type": "SPQ",
       "Queues": [
         {
           "no": 1,

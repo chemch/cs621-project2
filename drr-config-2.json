@@ -1,6 +1,6 @@
 {
     "QoS": {
-      "Name": "DRR",
+      "Type": "DRR",
       "Queues": [
         {
           "no": 1,

@@ -32,7 +32,7 @@ public:
      * \brief Add a filter element to the filter.
      * \param filterElement The filter element to add.
      */
-    void addFilterElement(FilterElement* filterElement);
+    void AddFilterElement(FilterElement* filterElement);
 
     /**
      * \brief Add multiple filter elements to the filter.

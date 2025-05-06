@@ -11,50 +11,81 @@
 
 namespace ns3 {
 
-struct QosData {
-    std::string name;
-    std::vector<uint32_t> max_packets;
-    std::vector<uint32_t> dest_ports;
-    std::vector<uint32_t> priorities;  // used if SPQ
-    std::vector<uint32_t> weights;     // used if DRR
-    std::vector<double> intervals;
-    std::vector<uint32_t> packet_sizes;
-    std::vector<bool> defaults;
-    uint32_t count;
-};
+    /**
+     * \brief Structure to hold QoS data.
+     * This structure is used to parse the configuration file and
+     * initialize the QoS mechanism.
+     */
+    struct QosConfiguration {
+        // QoS type (SPQ or DRR)
+        std::string qosType;
 
-class Simulation {
-public:
-    // Parsed QoS data
-    QosData data;
+        // Maximum packets for each queue
+        std::vector<uint32_t> maxPackets;
 
-    // Queue scheduler instances
-    Ptr<SPQ> spq;
-    Ptr<DRR> drr;
+        // Destination port for each queue
+        std::vector<uint32_t> destinationPorts;
 
-    bool parseConfigs(const std::string& filename);
-    void PrintConfig() const;
+        // SPQ specific priority levels
+        std::vector<uint32_t> priorities;
 
-    // Top-level initializer based on QoS name
-    void InitializeQOSMechanism();
+        // DRR specific weights
+        std::vector<uint32_t> weights; 
 
-    // Queue scheduler construction
-    void InitializeSPQ();
-    void InitializeDRR();
+        // Default queue flags
+        // true if the queue is default, false otherwise
+        // This is used to determine which queue to use when no other matches
+        std::vector<bool> defaults;
 
-    // Network and app setup
-    void InitializeTopology();
-    void InitializeUDPApplication();
+        // Number of queues
+        uint32_t queueCount;
+    };
 
-private:
-    // Node and topology
-    Ptr<Node> n0, r, n1;
-    NodeContainer all;
-    NetDeviceContainer devices1, devices2;
-    Ipv4InterfaceContainer interfaces1, interfaces2;
+    class Simulation {
+    public:
+        // Parsed QoS data
+        QosConfiguration qosConfig;
 
-    // Link helpers
-    PointToPointHelper pointToPoint1, pointToPoint2;
-};
+        // Queue scheduler instances
+        Ptr<SPQ> spq;
+        Ptr<DRR> drr;
+
+        // Handler for JSON parsing
+        bool parseConfigs(const std::string& configFileName);
+
+        // Print the parsed configuration
+        void PrintConfig() const;
+
+        // Top-level initializer based on QoS name
+        void InitializeQosComponent();
+
+        // Queue scheduler customization
+        // This function sets up the queue scheduler for the second link (router0 to node1)
+        // based on the QoS type (SPQ or DRR)
+        void CustomizeTopologyForQos();
+
+        // Queue scheduler construction
+        void InitializeSpq();
+        void InitializeDrr();
+
+        // Network and app setup
+        void InitializeTopology();
+        void InitializeUDPApplication();
+
+    private:
+        // Node and topology
+        Ptr<Node> node0, router0, node1;
+        NodeContainer allNodesContainer;
+        NetDeviceContainer networkDevice0, networkDevice1;
+
+        // IP address containers
+        // These are used to assign IP addresses to the devices
+        Ipv4InterfaceContainer networkDevice0Interface, networkDevice1Interface;
+
+        // Point-to-point links 
+        // Link 0 is between node0 and router
+        // Link 1 is between router and node1
+        PointToPointHelper link0Ptp, link1Ptp;
+    };
 
 } // namespace ns3
