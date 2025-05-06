@@ -73,6 +73,10 @@ namespace ns3 {
         void InitializeUDPApplication();
 
     private:
+        // Set constant values for packet size and interval
+        uint32_t PACKET_SIZE = 1000;
+        Time PACKET_TRANS_INTERVAL = Seconds(0.002);
+
         // Node and topology
         Ptr<Node> node0, router0, node1;
         NodeContainer allNodesContainer;

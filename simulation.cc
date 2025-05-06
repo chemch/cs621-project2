@@ -258,24 +258,22 @@ namespace ns3 {
         // Set up the queue scheduler for the second link (router0 to node1)
         // This is where we set the queue scheduler for the second link
         Ptr<PointToPointNetDevice> link1PtpNetworkDevice = router0->GetDevice(1)->GetObject<PointToPointNetDevice>();
-
-        //     if (data.name == "SPQ")
-        //     link1PtpNetworkDevice->SetQueue(spq);
-        // else if (data.name == "DRR")
-        //     link1PtpNetworkDevice->SetQueue(drr);
     }
 
+    /**
+     * \brief Initializes the UDP application.
+     * This function sets up the UDP server and client applications based on the QoS type.
+     */
     void Simulation::InitializeUDPApplication()
     {
-        uint32_t maxPacketSize = 1000;
-        Time interPacketInterval = Seconds(0.002);
-
-        // Add timestamp to pcap file names
+        // Get the current time and format it for the filename
+        // This is done to create unique filenames for the pcap files
         auto now = std::chrono::system_clock::now();
         auto time = std::chrono::system_clock::to_time_t(now);
         std::ostringstream timestamp;
         timestamp << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S");
 
+        // Create a point-to-point net device for the first link (node0 to router0)
         if (qosConfig.qosType == "SPQ") {
             UdpServerHelper server1(qosConfig.destinationPorts[0]);
             UdpServerHelper server2(qosConfig.destinationPorts[1]);
@@ -290,13 +288,13 @@ namespace ns3 {
 
             UdpClientHelper client1(networkDevice1Interface.GetAddress(1), qosConfig.destinationPorts[0]);
             client1.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[0]));
-            client1.SetAttribute("Interval", TimeValue(interPacketInterval));
-            client1.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+            client1.SetAttribute("Interval", TimeValue(PACKET_TRANS_INTERVAL));
+            client1.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
 
             UdpClientHelper client2(networkDevice1Interface.GetAddress(1), qosConfig.destinationPorts[1]);
             client2.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[1]));
-            client2.SetAttribute("Interval", TimeValue(interPacketInterval));
-            client2.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+            client2.SetAttribute("Interval", TimeValue(PACKET_TRANS_INTERVAL));
+            client2.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
 
             apps1 = client1.Install(node0);
             apps1.Start(Seconds(2.0));
@@ -311,38 +309,49 @@ namespace ns3 {
         }
         else if (qosConfig.qosType == "DRR") {
 
-            // create UdpClient applications on n0
-            uint32_t maxPacketSize = 1000;
-            Time interPacketInterval = Seconds(0.002);
+            // Install all the servers on node n1 in a loop
+            // n1 is the destination node
+            ApplicationContainer serverApplications;
 
-
-            // ----------------------------------------------------------------
-            // 1) Install all your servers on node n1 (all.Get(2)) in a loop
-            // ----------------------------------------------------------------
-            ApplicationContainer serverApps;
+            // Loop through the number of queues and create a server for each
             for (uint32_t i = 0; i < qosConfig.queueCount; ++i)
             {
                 UdpServerHelper server(qosConfig.destinationPorts[i]);
-                auto apps = server.Install(allNodesContainer.Get(2));
-                apps.Start(Seconds(1.0));
-                apps.Stop(Seconds(40.0));
-                serverApps.Add(apps);
+
+                // Install the server on node n1 for each queue
+                auto _application = server.Install(allNodesContainer.Get(2));
+
+                // Set the server to start and stop at specific times
+                _application.Start(Seconds(1.0));
+                _application.Stop(Seconds(40.0));
+
+                // Add the server application to the container
+                serverApplications.Add(_application);
             }
 
-            // ----------------------------------------------------------------
-            // 2) Install all your clients on node n0 (all.Get(0)) in a loop
-            // ----------------------------------------------------------------
+            // Install all the clients on node n0 in a loop
             ApplicationContainer clientApps;
+
+            // Loop through the number of queues and create a client for each
+            // n0 is the source node
             for (uint32_t i = 0; i < qosConfig.queueCount; ++i)
             {
                 UdpClientHelper client(networkDevice1Interface.GetAddress(1), qosConfig.destinationPorts[i]);
-                client.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[i]));
-                client.SetAttribute("Interval",  TimeValue(interPacketInterval));
-                client.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
 
+                // Set the client attributes
+                client.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[i]));
+                client.SetAttribute("Interval",  TimeValue(PACKET_TRANS_INTERVAL));
+                client.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
+
+                // Install the client on node n0
                 auto apps = client.Install(allNodesContainer.Get(0));
+
+                // Set the client to start and stop at specific times
                 apps.Start(Seconds(2.0));
                 apps.Stop(Seconds(40.0));
+
+                // Add the client application to the container
+                // This is done to set up the client applications for each queue
                 clientApps.Add(apps);
             }
 
