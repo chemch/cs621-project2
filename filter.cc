@@ -56,10 +56,12 @@ namespace ns3 {
 
             // Check if the filter element matches the packet
             if (!filterElement->Match(packet)) {
+                std::cout << "[Filter::match] Packet failed filter." << std::endl;
                 return false;
             }
         }
 
+        std::cout << "[Filter::match] Packet passed filter." << std::endl;
         return true;
     }
 } // namespace ns3

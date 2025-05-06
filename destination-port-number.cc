@@ -22,58 +22,53 @@ DestinationPortNumber::DestinationPortNumber(uint32_t destinationPort)
  */
 bool DestinationPortNumber::Match(Ptr<Packet> pkt) const
 {
-    // Make a copy of the packet to avoid modifying the original
-    Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
-
     PppHeader pppHeader;
-    // Remove the PPP header
+
     if (!packetCopy->RemoveHeader(pppHeader))
     {
-        std::cout << "Failed to remove PPP header" << std::endl;
+        std::cout << "[PortMatch] Failed to remove PPP header" << std::endl;
         return false;
     }
 
-    // If we're unable to remove the IPv4 header, return false
+    Ipv4Header ipv4Header;
     if (!packetCopy->RemoveHeader(ipv4Header))
     {
+        std::cout << "[PortMatch] Failed to remove IPv4 header" << std::endl;
         return false;
     }
 
     uint8_t protocol = ipv4Header.GetProtocol();
+    std::cout << "[PortMatch] Protocol = " << static_cast<int>(protocol) << std::endl;
 
-    // If TCP, check TCP header
     if (protocol == 6)
     {
-        // TCP protocol number is 6
         TcpHeader tcpHeader;
-
-        // Ensure we can peek the TCP header
         if (!packetCopy->PeekHeader(tcpHeader))
         {
+            std::cout << "[PortMatch] Failed to peek TCP header" << std::endl;
             return false;
         }
-
-        // Check if the destination port in the TCP header matches
-        return tcpHeader.GetDestinationPort() == m_destinationPort;
+        uint16_t dst = tcpHeader.GetDestinationPort();
+        std::cout << "[PortMatch] TCP dst port: " << dst
+                  << " | expected: " << m_destinationPort << std::endl;
+        return dst == m_destinationPort;
     }
-    // If UDP, check the UDP Header instead
     else if (protocol == 17)
     {
-        // UDP protocol number is 17
         UdpHeader udpHeader;
-
-        // Ensure we can peek the UDP header
         if (!packetCopy->PeekHeader(udpHeader))
         {
+            std::cout << "[PortMatch] Failed to peek UDP header" << std::endl;
             return false;
         }
-
-        // Check if the destination port in the UDP header matches
-        return udpHeader.GetDestinationPort() == m_destinationPort;
+        uint16_t dst = udpHeader.GetDestinationPort();
+        std::cout << "[PortMatch] UDP dst port: " << dst
+                  << " | expected: " << m_destinationPort << std::endl;
+        return dst == m_destinationPort;
     }
 
-    // If not TCP or UDP, no match
+    std::cout << "[PortMatch] Unknown protocol: " << static_cast<int>(protocol) << std::endl;
     return false;
 }
 

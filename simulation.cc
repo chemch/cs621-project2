@@ -116,6 +116,13 @@ void Simulation::InitializeDRR()
         tc->AddFilter(f);
 
         drr->AddQueue(tc);
+
+        std::cout << "[DRR Init] Queue " << i
+                  << " | DestPort: " << data.dest_ports[i]
+                  << " | MaxPackets: " << data.max_packets[i]
+                  << " | Weight: " << data.weights[i]
+                  << " | Default: " << (data.defaults[i] ? "true" : "false")
+                  << std::endl;
     }
 }
 
@@ -159,7 +166,6 @@ void Simulation::InitializeTopology()
     std::cout << "Node 0 IP: " << interfaces1.GetAddress(0) << std::endl;
     std::cout << "Node 1 IP: " << interfaces1.GetAddress(1) << std::endl;
     std::cout << "Router IP: " << interfaces2.GetAddress(0) << std::endl;
-
 }
 
 void Simulation::InitializeUDPApplication()
@@ -231,6 +237,7 @@ void Simulation::InitializeUDPApplication()
             client.SetAttribute("MaxPackets", UintegerValue(data.max_packets[i]));
             client.SetAttribute("Interval", TimeValue(interPacketInterval));
             client.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+
             auto cApp = client.Install(n0);
             cApp.Start(Seconds(2.0));
             cApp.Stop(Seconds(40.0));

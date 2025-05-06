@@ -25,6 +25,11 @@ bool TrafficClass::GetIsDefault() const
     return m_isDefault;
 }
 
+uint32_t TrafficClass::GetPackets() const
+{
+    return m_packets;
+}
+
 /**
  * \ingroup diffserv
  * \brief Setter for is default
@@ -41,16 +46,18 @@ void TrafficClass::SetIsDefault(bool default_queue)
  */
 bool TrafficClass::Enqueue(Ptr<Packet> pkt)
 {
-
-    // Ensure the packet count is less than max
     if (m_packets < m_maxPackets)
     {
         m_queue.push(pkt);
         m_packets++;
 
+        std::cout << "[TrafficClass::Enqueue] Packet enqueued. "
+                  << "Current packet count: " << m_packets << std::endl;
+
         return true;
     }
 
+    std::cout << "[TrafficClass::Enqueue] Packet dropped. Queue full." << std::endl;
     return false;
 }
 

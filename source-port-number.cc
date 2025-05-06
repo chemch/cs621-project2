@@ -2,6 +2,7 @@
 #include "ns3/tcp-header.h"
 #include "ns3/udp-header.h"
 #include "source-port-number.h"
+#include "ns3/ppp-header.h"
 
 namespace ns3 {
 
@@ -19,12 +20,19 @@ SourcePortNumber::SourcePortNumber(uint32_t sourcePort)
  * \param pkt The packet to inspect.
  * \returns true if the source port matches, else false.
  */
-bool
-SourcePortNumber::Match(Ptr<Packet> pkt) const
+bool SourcePortNumber::Match(Ptr<Packet> pkt) const
 {
     // Make a copy of the packet to avoid modifying the original
     Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
+
+    PppHeader pppHeader;
+
+    if (!packetCopy->RemoveHeader(pppHeader))
+    {
+        std::cout << "[PortMatch] Failed to remove PPP header" << std::endl;
+        return false;
+    }
 
     // If we're unable to remove the IPv4 header, return false
     if (!packetCopy->RemoveHeader(ipv4Header))

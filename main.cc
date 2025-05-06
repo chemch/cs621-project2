@@ -44,6 +44,7 @@ void RunSimulation(const std::string& configFile)
 
     std::cout << "-- Simulation Finished --" << std::endl;
     std::cout << "-- Cleaning Up --" << std::endl;
+    
     Simulator::Destroy();
 }
 

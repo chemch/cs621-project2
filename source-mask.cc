@@ -1,6 +1,7 @@
 #include "source-mask.h"
 #include "ns3/ipv4-header.h"
 #include "source-mask.h"
+#include "ns3/ppp-header.h"
 
 namespace ns3 {
 
@@ -24,6 +25,14 @@ SourceMask::Match(Ptr<Packet> pkt) const
 {
     Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
+
+    PppHeader pppHeader;
+
+    if (!packetCopy->RemoveHeader(pppHeader))
+    {
+        std::cout << "[PortMatch] Failed to remove PPP header" << std::endl;
+        return false;
+    }
 
     // If we can't access the packet header, return false
     if (!packetCopy->RemoveHeader(ipv4Header))

@@ -12,11 +12,11 @@ DRR::DRR() : active_queue(0) {}
 Ptr<Packet> DRR::Dequeue()
 {
     std::vector<TrafficClass*> queues = GetQueues();
-    if (next_active_queue >= queues.size() || queues[next_active_queue]->IsEmpty())
-    {
-        std::cout << "Active queue is invalid or empty during Dequeue." << std::endl;
-        return nullptr;
-    }
+    // if (next_active_queue >= queues.size() || queues[next_active_queue]->IsEmpty())
+    // {
+    //     std::cout << "Active queue is invalid or empty during Dequeue." << std::endl;
+    //     return nullptr;
+    // }
 
     Ptr<Packet> pkt = queues[next_active_queue]->Dequeue();
 
