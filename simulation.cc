@@ -103,26 +103,35 @@ void Simulation::InitializeSPQ()
 
 void Simulation::InitializeDRR()
 {
+    // create instance of object
     drr = CreateObject<DRR>();
+
+    // populate DRR class
+    for (int i = 0; i < data.count; i++)
+    {
+        // create and add filters
+        DestinationPortNumber *dstport_fe = new DestinationPortNumber(data.dest_ports[i]);
+        Filter *f1 = new Filter();
+        f1->addFilterElement(dstport_fe);
+
+        // add traffic class values
+        TrafficClass *trafficClass = new TrafficClass();
+
+        trafficClass->SetMaxPackets(data.max_packets[i]);
+        trafficClass->SetWeight(data.weights[i]);
+        trafficClass->SetIsDefault(data.defaults[i]);
+        trafficClass->AddFilter(f1);
+
+        // add traffic class to drr
+        drr->AddQueue(trafficClass);
+    }
+
+    // print queue information
     for (int i = 0; i < data.count; ++i) {
-        DestinationPortNumber* dstport_fe = new DestinationPortNumber(data.dest_ports[i]);
-        Filter* f = new Filter();
-        f->addFilterElement(dstport_fe);
-
-        TrafficClass* tc = new TrafficClass();
-        tc->SetMaxPackets(data.max_packets[i]);
-        tc->SetWeight(data.weights[i]);
-        tc->SetIsDefault(data.defaults[i]);
-        tc->AddFilter(f);
-
-        drr->AddQueue(tc);
-
-        std::cout << "[DRR Init] Queue " << i
-                  << " | DestPort: " << data.dest_ports[i]
-                  << " | MaxPackets: " << data.max_packets[i]
-                  << " | Weight: " << data.weights[i]
-                  << " | Default: " << (data.defaults[i] ? "true" : "false")
-                  << std::endl;
+        std::cout << "Queue " << i + 1 << ": MaxPackets=" << data.max_packets[i]
+                  << ", DestPort=" << data.dest_ports[i]
+                  << ", Weight=" << data.weights[i]
+                  << ", Default=" << (data.defaults[i] ? "true" : "false") << std::endl;
     }
 }
 
@@ -172,7 +181,7 @@ void Simulation::InitializeUDPApplication()
 {
     uint32_t maxPacketSize = 1000;
     Time interPacketInterval = Seconds(0.002);
-    uint32_t maxPacketCount = 15000;
+    // uint32_t maxPacketCount = 15000;
 
      // Add timestamp to pcap file names
     auto now = std::chrono::system_clock::now();
@@ -211,42 +220,55 @@ void Simulation::InitializeUDPApplication()
         apps2.Stop(Seconds(40.0));
 
         // print out important information
-        std::cout << "Node 0 IP: " << interfaces1.GetAddress(0) << std::endl;
-        std::cout << "Node 1 IP: " << interfaces1.GetAddress(1) << std::endl;
-        std::cout << "Router IP: " << interfaces2.GetAddress(0) << std::endl;
-        std::cout << "Client 1 Destination: " << interfaces2.GetAddress(1) << ":" << data.dest_ports[0] << std::endl;
-        std::cout << "Client 2 Destination: " << interfaces2.GetAddress(1) << ":" << data.dest_ports[1] << std::endl;
-        std::cout << "Client 1 MaxPackets: " << maxPacketCount << std::endl;
-        std::cout << "Client 2 MaxPackets: " << maxPacketCount << std::endl;
-        std::cout << "Client 1 PacketSize: " << maxPacketSize << std::endl;
-        std::cout << "Client 2 PacketSize: " << maxPacketSize << std::endl;
-        std::cout << "Client 1 Interval: " << interPacketInterval.GetSeconds() << " seconds" << std::endl;
-        std::cout << "Client 2 Interval: " << interPacketInterval.GetSeconds() << " seconds" << std::endl;
+        // std::cout << "Node 0 IP: " << interfaces1.GetAddress(0) << std::endl;
+        // std::cout << "Node 1 IP: " << interfaces1.GetAddress(1) << std::endl;
+        // std::cout << "Router IP: " << interfaces2.GetAddress(0) << std::endl;
+        // std::cout << "Client 1 Destination: " << interfaces2.GetAddress(1) << ":" << data.dest_ports[0] << std::endl;
+        // std::cout << "Client 2 Destination: " << interfaces2.GetAddress(1) << ":" << data.dest_ports[1] << std::endl;
+        // std::cout << "Client 1 MaxPackets: " << maxPacketCount << std::endl;
+        // std::cout << "Client 2 MaxPackets: " << maxPacketCount << std::endl;
+        // std::cout << "Client 1 PacketSize: " << maxPacketSize << std::endl;
+        // std::cout << "Client 2 PacketSize: " << maxPacketSize << std::endl;
+        // std::cout << "Client 1 Interval: " << interPacketInterval.GetSeconds() << " seconds" << std::endl;
+        // std::cout << "Client 2 Interval: " << interPacketInterval.GetSeconds() << " seconds" << std::endl;
 
         pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_SPQ_" + timestamp.str(), devices1.Get(1));
         pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_SPQ_" + timestamp.str(), devices2.Get(0));
     }
     else if (data.name == "DRR") {
-        for (int i = 0; i < data.count; ++i) {
-            UdpServerHelper server(data.dest_ports[i]);
-            auto app = server.Install(n1);
-            app.Start(Seconds(1.0));
-            app.Stop(Seconds(40.0));
+        // create UdpServer applications on n1
+        UdpServerHelper server1(data.dest_ports[0]);
+        UdpServerHelper server2(data.dest_ports[1]);
 
-            UdpClientHelper client(interfaces2.GetAddress(1), data.dest_ports[i]);
-            client.SetAttribute("MaxPackets", UintegerValue(data.max_packets[i]));
-            client.SetAttribute("Interval", TimeValue(interPacketInterval));
-            client.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+        ApplicationContainer apps1 = server1.Install(all.Get(2));
+        apps1.Start(Seconds(1.0));
+        apps1.Stop(Seconds(40.0));
+        ApplicationContainer apps2 = server2.Install(all.Get(2));
+        apps2.Start(Seconds(1.0));
+        apps2.Stop(Seconds(40.0));
 
-            auto cApp = client.Install(n0);
-            cApp.Start(Seconds(2.0));
-            cApp.Stop(Seconds(40.0));
+        // create UdpClient applications on n0
+        uint32_t maxPacketSize = 1000;
+        Time interPacketInterval = Seconds(0.002);
+        uint32_t maxPacketCount = 1000;
 
-            std::cout << "Client " << i + 1 << ": DestPort=" << data.dest_ports[i]
-                    << ", MaxPackets=" << data.max_packets[i]
-                    << ", Interval=" << interPacketInterval.GetSeconds()
-                    << ", PacketSize=" << maxPacketSize << std::endl;
-        }
+        UdpClientHelper client1(interfaces2.GetAddress(1), data.dest_ports[0]);
+        client1.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+        client1.SetAttribute("Interval", TimeValue(interPacketInterval));
+        client1.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+
+        UdpClientHelper client2(interfaces2.GetAddress(1), data.dest_ports[1]);
+        client2.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+        client2.SetAttribute("Interval", TimeValue(interPacketInterval));
+        client2.SetAttribute("PacketSize", UintegerValue(maxPacketSize));
+
+        apps1 = client1.Install(all.Get(0));
+        apps1.Start(Seconds(2.0));
+        apps1.Stop(Seconds(40.0));
+
+        apps2 = client2.Install(all.Get(0));
+        apps2.Start(Seconds(2.0));
+        apps2.Stop(Seconds(40.0));
 
         pointToPoint1.EnablePcap("scratch/diffserv/pcaps/Pre_DRR_" + timestamp.str(), devices1.Get(1));
         pointToPoint2.EnablePcap("scratch/diffserv/pcaps/Post_DRR_" + timestamp.str(), devices2.Get(0));

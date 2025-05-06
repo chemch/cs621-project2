@@ -40,7 +40,6 @@ bool DiffServ::Enqueue(Ptr<Packet> pkt)
 }
 
 
-
 Ptr<Packet> DiffServ::Dequeue()
 {
     return ExecuteDequeue();

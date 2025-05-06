@@ -11,25 +11,27 @@ DRR::DRR() : active_queue(0) {}
  */
 Ptr<Packet> DRR::Dequeue()
 {
-    std::vector<TrafficClass*> queues = GetQueues();
-    // if (next_active_queue >= queues.size() || queues[next_active_queue]->IsEmpty())
-    // {
-    //     std::cout << "Active queue is invalid or empty during Dequeue." << std::endl;
-    //     return nullptr;
-    // }
+    // Log the attempt to dequeue
+    std::cout << "Attempting to dequeue from queue index: " << active_queue << std::endl;
+    std::cout << "Current deficit counter: " << deficit_counter[active_queue] << std::endl;
 
-    Ptr<Packet> pkt = queues[next_active_queue]->Dequeue();
+    Ptr<Packet> dequeued_packet = DiffServ::Dequeue();
 
-    if (pkt != nullptr)
+    // Log the dequeued packet info 
+    if (dequeued_packet)
     {
-        // std::cout << "Got dequeued: " << pkt->GetSize() << std::endl;
-        // std::cout << "Dequeued from queue index: " << next_active_queue << std::endl;
-
-        active_queue = next_active_queue;
-        deficit_counter = next_deficit_counter;
+        std::cout << "Dequeued packet size: " << dequeued_packet->GetSize() << std::endl;
+        std::cout << "Dequeued from queue index: " << active_queue << std::endl;
     }
 
-    return pkt;
+
+    if (dequeued_packet)
+    {
+        active_queue = next_active_queue;
+        deficit_counter = next_deficit_counter;
+        return dequeued_packet;
+    }
+    return nullptr;
 }
 
 Ptr<Packet> DRR::Remove()
@@ -69,57 +71,59 @@ Ptr<Packet> DRR::Remove()
  */
 Ptr<const Packet> DRR::Schedule() const
 {
+   // get traffic class queues
     std::vector<TrafficClass*> queues = GetQueues();
-    uint32_t numQueues = queues.size();
 
-    if (numQueues == 0)
+    // check that there are queues to serve
+    if (queues.size() == 0)
     {
         std::cout << "No queues to serve." << std::endl;
         return nullptr;
     }
 
-    // Initialize working state from current scheduler state
+    // reset to current deficit
     next_active_queue = active_queue;
     next_deficit_counter = deficit_counter;
 
-    // Check if all queues are empty
-    bool allEmpty = true;
-    for (auto q : queues)
+    // check first that there are any packets
+    uint32_t empty_count = 0;
+    for (int i = 0; i < queues.size(); i++)
     {
-        if (!q->IsEmpty())
+        if (queues[i]->IsEmpty())
         {
-            allEmpty = false;
-            break;
+            empty_count++;
         }
     }
-
-    if (allEmpty)
+    if (empty_count == queues.size())
     {
         std::cout << "All queues are empty." << std::endl;
         return nullptr;
     }
 
-    // Loop to find a queue that can serve a packet
-    for (uint32_t attempts = 0; attempts < numQueues; ++attempts)
+    // drr algorithm 
+    while (true)
     {
-        TrafficClass* queue = queues[next_active_queue];
-
-        if (!queue->IsEmpty())
+        if (!queues[next_active_queue]->IsEmpty())
         {
-            next_deficit_counter[next_active_queue] += queue->GetWeight();
-            uint32_t pktSize = queue->Peek()->GetSize();
+            // log weight and deficit counter
+            std::cout << "Queue index: " << next_active_queue << std::endl;
+            std::cout << "Queue weight: " << queues[next_active_queue]->GetWeight() << std::endl;
+            std::cout << "Deficit counter before: " << next_deficit_counter[next_active_queue] << std::endl;
+            
 
-            if (pktSize <= next_deficit_counter[next_active_queue])
+            next_deficit_counter[next_active_queue] = queues[next_active_queue]->GetWeight() + next_deficit_counter[next_active_queue];
+            // std::cout << "Deficit counter for: " << next_active_queue << ": " << next_deficit_counter[next_active_queue] << std::endl;
+            uint32_t packet_size = queues[next_active_queue]->Peek()->GetSize();
+            if (packet_size <= next_deficit_counter[next_active_queue])
             {
-                next_deficit_counter[next_active_queue] -= pktSize;
-                return queue->Peek();
+                // std::cout << "Packet size to remove: " << packet_size << std::endl;
+                next_deficit_counter[next_active_queue] = next_deficit_counter[next_active_queue] - packet_size;
+                return queues[next_active_queue]->Peek();
             }
         }
-
-        next_active_queue = (next_active_queue + 1) % numQueues;
+        next_active_queue = (next_active_queue + 1) % queues.size();
     }
-
-    return nullptr;
+    return queues[next_active_queue]->Peek();
 }
 
 /**
@@ -128,12 +132,8 @@ Ptr<const Packet> DRR::Schedule() const
  */
 void DRR::AddQueue(TrafficClass* trafficClass)
 {
-    // Add the new queue to the base DiffServ queue list
     DiffServ::AddQueue(trafficClass);
-
-    // Initialize its deficit counter to 0
     deficit_counter.push_back(0);
-    next_deficit_counter.push_back(0);
 }
 
 } // namespace ns3

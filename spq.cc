@@ -15,7 +15,6 @@ SPQ::SPQ() {}
 Ptr<const Packet>
 SPQ::Schedule() const
 {
-
     const std::vector<TrafficClass*> queues = GetQueues();
 
     // Check if there are any queues available

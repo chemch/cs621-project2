@@ -39,7 +39,7 @@ bool DestinationPortNumber::Match(Ptr<Packet> pkt) const
     }
 
     uint8_t protocol = ipv4Header.GetProtocol();
-    std::cout << "[PortMatch] Protocol = " << static_cast<int>(protocol) << std::endl;
+    // std::cout << "[PortMatch] Protocol = " << static_cast<int>(protocol) << std::endl;
 
     if (protocol == 6)
     {
@@ -50,8 +50,8 @@ bool DestinationPortNumber::Match(Ptr<Packet> pkt) const
             return false;
         }
         uint16_t dst = tcpHeader.GetDestinationPort();
-        std::cout << "[PortMatch] TCP dst port: " << dst
-                  << " | expected: " << m_destinationPort << std::endl;
+        // std::cout << "[PortMatch] TCP dst port: " << dst
+        //           << " | expected: " << m_destinationPort << std::endl;
         return dst == m_destinationPort;
     }
     else if (protocol == 17)
@@ -63,8 +63,8 @@ bool DestinationPortNumber::Match(Ptr<Packet> pkt) const
             return false;
         }
         uint16_t dst = udpHeader.GetDestinationPort();
-        std::cout << "[PortMatch] UDP dst port: " << dst
-                  << " | expected: " << m_destinationPort << std::endl;
+        // std::cout << "[PortMatch] UDP dst port: " << dst
+        //           << " | expected: " << m_destinationPort << std::endl;
         return dst == m_destinationPort;
     }
 

@@ -51,8 +51,8 @@ bool TrafficClass::Enqueue(Ptr<Packet> pkt)
         m_queue.push(pkt);
         m_packets++;
 
-        std::cout << "[TrafficClass::Enqueue] Packet enqueued. "
-                  << "Current packet count: " << m_packets << std::endl;
+        // std::cout << "[TrafficClass::Enqueue] Packet enqueued. "
+        //           << "Current packet count: " << m_packets << std::endl;
 
         return true;
     }
