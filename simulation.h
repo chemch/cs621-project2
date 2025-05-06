@@ -5,6 +5,9 @@
 #include "ns3/internet-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
+#include <string>
+#include "ns3/point-to-point-helper.h"
+#include "ns3/net-device.h"           
 
 #include "spq.h"
 #include "drr.h"
@@ -90,6 +93,10 @@ namespace ns3 {
         // Link 0 is between node0 and router
         // Link 1 is between router and node1
         PointToPointHelper link0Ptp, link1Ptp;
+
+        // Enable pcap tracing
+        // This function enables pcap tracing for the point-to-point links
+        std::pair<std::string, std::string> MakePcapNames(const std::string& sched);
     };
 
 } // namespace ns3

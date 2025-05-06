@@ -3,11 +3,47 @@
 #include <fstream>
 #include "json.hpp"
 #include "destination-port-number.h"
+#include <filesystem>
 
 // Include the necessary headers for JSON parsing
 using json = nlohmann::json;
 
 namespace ns3 {
+
+    /** 
+     * 
+     * \brief Enable pcap tracing for the simulation.
+     * This function sets up pcap tracing for the point-to-point links
+     * and the network devices.
+     * \param sched The scheduler type (SPQ or DRR).
+     */    
+    std::pair<std::string, std::string> Simulation::MakePcapNames(const std::string& sched)
+    {
+        // Use std::filesystem to handle file paths
+        namespace fs = std::filesystem;
+
+        // Get the current time and format it for the filename
+        auto now = std::chrono::system_clock::now();
+        auto time = std::chrono::system_clock::to_time_t(now);
+        std::ostringstream timestamp;
+        timestamp << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S");
+        
+        // Get just a string from the timestamp
+        std::string ts = timestamp.str();
+
+        // Get the current working directory
+        fs::path ccDir   = fs::path(__FILE__).parent_path();
+
+        // Get the directory for pcap files
+        fs::path pcapDir = ccDir / "pcaps";
+
+        // Create the Pre and Post pcap file names
+        std::string preName  = (pcapDir / ("Pre_"  + sched + "_" + ts)).string();
+        std::string postName = (pcapDir / ("Post_" + sched + "_" + ts)).string();
+
+        // Return the pcap file names
+        return { preName, postName };
+    }
 
     /**
      * \brief Parses the configuration file and initializes QoS data.
@@ -266,46 +302,50 @@ namespace ns3 {
      */
     void Simulation::InitializeUDPApplication()
     {
-        // Get the current time and format it for the filename
-        // This is done to create unique filenames for the pcap files
-        auto now = std::chrono::system_clock::now();
-        auto time = std::chrono::system_clock::to_time_t(now);
-        std::ostringstream timestamp;
-        timestamp << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S");
-
         // Create a point-to-point net device for the first link (node0 to router0)
         if (qosConfig.qosType == "SPQ") {
-            UdpServerHelper server1(qosConfig.destinationPorts[0]);
-            UdpServerHelper server2(qosConfig.destinationPorts[1]);
 
-            auto apps1 = server1.Install(node1);
-            apps1.Start(Seconds(1.0));
-            apps1.Stop(Seconds(40.0));
+            // Define constants for the stop, start and interval times
+            static constexpr double STOP_TIME        = 40.0;
+            static constexpr double SERVER_START     = 1.0;
+            static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 14.0 };
 
-            auto apps2 = server2.Install(node1);
-            apps2.Start(Seconds(1.0));
-            apps2.Stop(Seconds(40.0));
+            for (size_t i = 0; i < qosConfig.destinationPorts.size(); ++i)
+            {
+                uint32_t port = qosConfig.destinationPorts[i];
 
-            UdpClientHelper client1(networkDevice1Interface.GetAddress(1), qosConfig.destinationPorts[0]);
-            client1.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[0]));
-            client1.SetAttribute("Interval", TimeValue(PACKET_TRANS_INTERVAL));
-            client1.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
+                // Install the server on node n1
+                // n1 is the destination node
+                {
+                    // create & install in one line
+                    auto apps = UdpServerHelper(port).Install(node1);
+                    apps.Start(Seconds(SERVER_START));
+                    apps.Stop (Seconds(STOP_TIME));
+                }
 
-            UdpClientHelper client2(networkDevice1Interface.GetAddress(1), qosConfig.destinationPorts[1]);
-            client2.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[1]));
-            client2.SetAttribute("Interval", TimeValue(PACKET_TRANS_INTERVAL));
-            client2.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
+                // Set up UDP Client Helper
+                // This is used to create a UDP client application
+                UdpClientHelper client( networkDevice1Interface.GetAddress(1), port);
 
-            apps1 = client1.Install(node0);
-            apps1.Start(Seconds(2.0));
-            apps1.Stop(Seconds(40.0));
+                // Set the client attributes
+                client.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[i]));
+                client.SetAttribute("Interval",   TimeValue    (PACKET_TRANS_INTERVAL));
+                client.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
 
-            apps2 = client2.Install(node0);
-            apps2.Start(Seconds(14.0));
-            apps2.Stop(Seconds(40.0));
+                // Install the client on node n0
+                {
+                    auto apps = client.Install(node0);
+                    apps.Start(Seconds(CLIENT_START_OFFSETS[i]));
+                    apps.Stop (Seconds(STOP_TIME));
+                }
+            }
 
-            link0Ptp.EnablePcap("scratch/diffserv/pcaps/Pre_SPQ_" + timestamp.str(), networkDevice0.Get(1));
-            link1Ptp.EnablePcap("scratch/diffserv/pcaps/Post_SPQ_" + timestamp.str(), networkDevice1.Get(0));
+            // Get the file names for pcap tracing
+            auto [preName, postName] = MakePcapNames(qosConfig.qosType);
+
+            // Enable pcap tracing for the point-to-point links
+            link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
+            link1Ptp.EnablePcap(postName, networkDevice1.Get(0));
         }
         else if (qosConfig.qosType == "DRR") {
 
@@ -355,8 +395,12 @@ namespace ns3 {
                 clientApps.Add(apps);
             }
 
-            link0Ptp.EnablePcap("scratch/diffserv/pcaps/Pre_DRR_" + timestamp.str(), networkDevice0.Get(1));
-            link1Ptp.EnablePcap("scratch/diffserv/pcaps/Post_DRR_" + timestamp.str(), networkDevice1.Get(0));
+            // Get the file names for pcap tracing
+            auto [preName, postName] = MakePcapNames(qosConfig.qosType);
+
+            // Enable pcap tracing for the point-to-point links
+            link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
+            link1Ptp.EnablePcap(postName, networkDevice1.Get(0));
         }
     }
 } // namespace ns3
