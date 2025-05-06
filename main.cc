@@ -36,14 +36,11 @@ void RunSimulation(const std::string& configFile)
     std::cout << "-- Building Base Topology --" << std::endl;
     simulation.InitializeTopology();
 
-    std::cout << "-- Initializing QoS Mechanism --" << std::endl;
-    simulation.InitializeQosComponent();
-
-    std::cout << "-- Configuring Topology for QoS --" << std::endl;
-    simulation.CustomizeTopologyForQos();
+    std::cout << "-- Build QoS Mechanism on UDP App --" << std::endl;
+    simulation.InitializeQosScheduler();
 
     std::cout << "-- Initialize UDP Application --" << std::endl;
-    simulation.InitializeUDPApplication();
+    simulation.InitializeUdpApplication();
 
     std::cout << "-- Starting Simulation --" << std::endl;
 
@@ -110,6 +107,5 @@ int main(int argc, char* argv[])
 
     // Return 0 to indicate successful execution
     std::cout << "-- Program Finished --" << std::endl;
-    std::cout << "Exiting..." << std::endl;
     return 0;
 }

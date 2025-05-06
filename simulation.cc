@@ -178,18 +178,19 @@ namespace ns3 {
      * \brief Initializes the QoS mechanism based on the configuration.
      * This function creates instances of the queue scheduler and populates them with the parsed data.
      */
-    void Simulation::InitializeQosComponent()
+    void Simulation::InitializeQosScheduler()
     {
         // Check the QoS type and initialize the corresponding queue scheduler
-        if (qosConfig.qosType == "DRR")
+        if (qosConfig.qosType == "DRR") {
+            // Initialize the DRR queue scheduler
             InitializeDrr();
-
-        else if (qosConfig.qosType == "SPQ")
+        }
+        else if (qosConfig.qosType == "SPQ") {
+            // Initialize the SPQ queue scheduler
             InitializeSpq();
-
+        }
         else
             // If the QoS type is not recognized, print an error message
-            // and terminate the program
             NS_FATAL_ERROR("Unknown QoS type: " << qosConfig.qosType);
     }
 
@@ -232,18 +233,27 @@ namespace ns3 {
      * \brief Customizes the topology based on the QoS type.
      * This function sets up the queue scheduler for the second link (router0 to node1).
      */
-    void Simulation::CustomizeTopologyForQos()
+    void Simulation::InitializeUdpApplication()
     {
         // Get the point-to-point network device for the second link (router0 to node1)
         Ptr<PointToPointNetDevice> link1PtpNetworkDevice = router0->GetDevice(1)->GetObject<PointToPointNetDevice>();
 
         // Set the queue scheduler for the second link based on the QoS type
-        if (qosConfig.qosType == "SPQ")
+        if (qosConfig.qosType == "SPQ") {
             link1PtpNetworkDevice->SetQueue(spq);
+
+            // Build UDP Application for SPQ
+            InitializeSpqUdpApplication();
+        }
         
         // Set to DRR if the QoS type is DRR
-        else if (qosConfig.qosType == "DRR")
+        else if (qosConfig.qosType == "DRR") {
+            // Set the queue scheduler for the second link to DRR
             link1PtpNetworkDevice->SetQueue(drr);
+
+            // Build UDP Application for DRR
+            InitializeDrrUdpApplication();
+        }
     }
 
     /**
@@ -297,59 +307,12 @@ namespace ns3 {
     }
 
     /**
-     * \brief Initializes the UDP application.
+     * \brief Initializes the UDP applications for DRR.
      * This function sets up the UDP server and client applications based on the QoS type.
      */
-    void Simulation::InitializeUDPApplication()
+    void Simulation::InitializeDrrUdpApplication()
     {
-        // Create a point-to-point net device for the first link (node0 to router0)
-        if (qosConfig.qosType == "SPQ") {
-
-            // Define constants for the stop, start and interval times
-            static constexpr double STOP_TIME        = 40.0;
-            static constexpr double SERVER_START     = 1.0;
-            static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 14.0 };
-
-            for (size_t i = 0; i < qosConfig.destinationPorts.size(); ++i)
-            {
-                uint32_t port = qosConfig.destinationPorts[i];
-
-                // Install the server on node n1
-                // n1 is the destination node
-                {
-                    // create & install in one line
-                    auto apps = UdpServerHelper(port).Install(node1);
-                    apps.Start(Seconds(SERVER_START));
-                    apps.Stop (Seconds(STOP_TIME));
-                }
-
-                // Set up UDP Client Helper
-                // This is used to create a UDP client application
-                UdpClientHelper client( networkDevice1Interface.GetAddress(1), port);
-
-                // Set the client attributes
-                client.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[i]));
-                client.SetAttribute("Interval",   TimeValue    (PACKET_TRANS_INTERVAL));
-                client.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
-
-                // Install the client on node n0
-                {
-                    auto apps = client.Install(node0);
-                    apps.Start(Seconds(CLIENT_START_OFFSETS[i]));
-                    apps.Stop (Seconds(STOP_TIME));
-                }
-            }
-
-            // Get the file names for pcap tracing
-            auto [preName, postName] = MakePcapNames(qosConfig.qosType);
-
-            // Enable pcap tracing for the point-to-point links
-            link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
-            link1Ptp.EnablePcap(postName, networkDevice1.Get(0));
-        }
-        else if (qosConfig.qosType == "DRR") {
-
-            // Install all the servers on node n1 in a loop
+       // Install all the servers on node n1 in a loop
             // n1 is the destination node
             ApplicationContainer serverApplications;
 
@@ -401,6 +364,54 @@ namespace ns3 {
             // Enable pcap tracing for the point-to-point links
             link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
             link1Ptp.EnablePcap(postName, networkDevice1.Get(0));
+    }
+
+    /**
+     * \brief Initializes the UDP applications for SPQ.
+     * This function sets up the UDP server and client applications based on the QoS type.
+     */
+    void Simulation::InitializeSpqUdpApplication()
+    {
+        // Define constants for the stop, start and interval times
+        static constexpr double STOP_TIME        = 40.0;
+        static constexpr double SERVER_START     = 1.0;
+        static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 14.0 };
+
+        for (size_t i = 0; i < qosConfig.destinationPorts.size(); ++i)
+        {
+            uint32_t port = qosConfig.destinationPorts[i];
+
+            // Install the server on node n1
+            // n1 is the destination node
+            {
+                // create & install in one line
+                auto apps = UdpServerHelper(port).Install(node1);
+                apps.Start(Seconds(SERVER_START));
+                apps.Stop (Seconds(STOP_TIME));
+            }
+
+            // Set up UDP Client Helper
+            // This is used to create a UDP client application
+            UdpClientHelper client( networkDevice1Interface.GetAddress(1), port);
+
+            // Set the client attributes
+            client.SetAttribute("MaxPackets", UintegerValue(qosConfig.maxPackets[i]));
+            client.SetAttribute("Interval",   TimeValue    (PACKET_TRANS_INTERVAL));
+            client.SetAttribute("PacketSize", UintegerValue(PACKET_SIZE));
+
+            // Install the client on node n0
+            {
+                auto apps = client.Install(node0);
+                apps.Start(Seconds(CLIENT_START_OFFSETS[i]));
+                apps.Stop (Seconds(STOP_TIME));
+            }
         }
+
+        // Get the file names for pcap tracing
+        auto [preName, postName] = MakePcapNames(qosConfig.qosType);
+
+        // Enable pcap tracing for the point-to-point links
+        link0Ptp.EnablePcap(preName,  networkDevice0.Get(1));
+        link1Ptp.EnablePcap(postName, networkDevice1.Get(0));
     }
 } // namespace ns3

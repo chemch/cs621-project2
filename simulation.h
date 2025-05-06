@@ -59,21 +59,24 @@ namespace ns3 {
         // Print the parsed configuration
         void PrintConfig() const;
 
-        // Top-level initializer based on QoS name
-        void InitializeQosComponent();
+        // Initialize the topology
+        void InitializeTopology();
 
-        // Queue scheduler customization
-        // This function sets up the queue scheduler for the second link (router0 to node1)
-        // based on the QoS type (SPQ or DRR)
-        void CustomizeTopologyForQos();
+        // Set up Qos scheduler (SPQ or DRR)
+        void InitializeQosScheduler();
 
         // Queue scheduler construction
         void InitializeSpq();
         void InitializeDrr();
 
+        // Queue scheduler customization
+        // This function sets up the queue scheduler for the second link (router0 to node1)
+        // based on the QoS type (SPQ or DRR)
+        void InitializeUdpApplication();
+
         // Network and app setup
-        void InitializeTopology();
-        void InitializeUDPApplication();
+        void InitializeSpqUdpApplication();
+        void InitializeDrrUdpApplication();
 
     private:
         // Set constant values for packet size and interval
