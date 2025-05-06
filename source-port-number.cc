@@ -23,9 +23,10 @@ SourcePortNumber::SourcePortNumber(uint32_t sourcePort)
 bool SourcePortNumber::Match(Ptr<Packet> pkt) const
 {
     // Make a copy of the packet to avoid modifying the original
-    Ipv4Header ipv4Header;
     Ptr<Packet> packetCopy = pkt->Copy();
-
+    
+    // Define the headers we need to remove
+    Ipv4Header ipv4Header;
     PppHeader pppHeader;
 
     if (!packetCopy->RemoveHeader(pppHeader))

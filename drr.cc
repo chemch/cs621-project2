@@ -14,13 +14,13 @@ Ptr<Packet> DRR::Dequeue()
 
     Ptr<Packet> dequeued_packet = DiffServ::Dequeue();
 
-
     if (dequeued_packet)
     {
         active_queue = next_active_queue;
         deficit_counter = next_deficit_counter;
         return dequeued_packet;
     }
+
     return nullptr;
 }
 

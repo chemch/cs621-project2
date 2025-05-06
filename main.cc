@@ -39,7 +39,7 @@ void RunSimulation(const std::string& configFile)
     std::cout << "-- Building Base Topology --" << std::endl;
     simulation.InitializeTopology();
 
-    std::cout << "-- Build QoS Mechanism on UDP App --" << std::endl;
+    std::cout << "-- Build QoS Mechanism --" << std::endl;
     simulation.InitializeQosScheduler();
 
     std::cout << "-- Initialize UDP Application --" << std::endl;
