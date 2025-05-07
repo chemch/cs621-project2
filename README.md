@@ -172,7 +172,7 @@ Shreedhar, M., & Varghese, G. (1995). Efficient Fair Queuing using Deficit Round
 - Results show that on Post SPQ QOS, App 2 gets full bandwidth and App 1 traffic temporarilily goes to 0
 - Once App 2 packets are exhausted, then the best effort (App 1) regains the full bandwidth
 
-![alt text](image.png)
+![alt text](spq-validation-1.png)
 
 > Note: These results can be generated using the spq-config-1.json configuration file. 
 
@@ -183,7 +183,7 @@ Shreedhar, M., & Varghese, G. (1995). Efficient Fair Queuing using Deficit Round
 - Queue (App) 3 has Destination Port 3333 and Weight of 100 (also set to the Default Queue on No Filter Match)
 - All 3 Apps (Queues) Start at Sim Start + 2 Seconds
 
-![alt text](image-1.png)
+![alt text](drr-validation-1.png)
 
 > Note: These results can be generated using the drr-config-1.json configuration file.
 
