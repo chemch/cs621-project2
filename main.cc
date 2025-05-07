@@ -68,9 +68,14 @@ void RunSimulation(const std::string& configFile)
  */
 int main(int argc, char* argv[])
 {
+    // turn on INFO for DiffServ and DEBUG for your filter
+    LogComponentEnable ("DestinationIPAddress", LOG_LEVEL_DEBUG);
+
+    // Set up the command line argument variables
     std::string runMode;
     std::string configFile;
 
+    // Add command line arguments for run mode and config file
     ns3::CommandLine cmd;
     cmd.AddValue ("runMode",    "Mode: \"test\" or \"sim\"", runMode);
     cmd.AddValue ("configFile", "QoS JSON config (required if runMode==sim)", configFile);

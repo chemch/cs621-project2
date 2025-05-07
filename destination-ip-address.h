@@ -7,30 +7,30 @@
 
 namespace ns3 {
 
-/**
- * \ingroup diffserv
- * \brief Class to match destination IP address.
- */
-class DestinationIPAddress : public FilterElement
-{
-
-public:
     /**
-     * \brief Constructor.
-     * \param destinationIp The destination IP address to match.
+     * \ingroup diffserv
+     * \brief Class to match destination IP address.
      */
-    DestinationIPAddress(Ipv4Address destinationIp);
+    class DestinationIPAddress : public FilterElement
+    {
 
-    /**
-     * \brief Match the packet against the destination IP address.
-     * \param pkt The packet to check.
-     * \returns true if the packet matches, false otherwise.
-     */
-    bool Match(Ptr<Packet> pkt) const override;
+    public:
+        /**
+         * \brief Constructor.
+         * \param destinationIp The destination IP address to match.
+         */
+        explicit DestinationIPAddress(Ipv4Address destinationIp);
 
-private:
-    Ipv4Address m_destinationIp;
-};
+        /**
+         * \brief Match the packet against the destination IP address.
+         * \param pkt The packet to check.
+         * \returns true if the packet matches, false otherwise.
+         */
+        bool Match(Ptr<Packet> pkt) const override;
+
+    private:
+        Ipv4Address m_destinationIp;
+    };
 
 } // namespace ns3
 

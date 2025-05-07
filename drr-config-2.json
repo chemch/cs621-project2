@@ -4,31 +4,31 @@
       "Queues": [
         {
           "no": 1,
-          "MaxPackets": 4000,
+          "MaxPackets": 5000,
           "Weight": 1,
           "Default": true,
-          "DestPort": 3333
+          "DestPort": 3000
         },
         {
           "no": 2,
-          "MaxPackets": 4000,
+          "MaxPackets": 5000,
           "Weight": 2,
           "Default": false,
-          "DestPort": 4444
+          "DestPort": 6000
         }, 
         {
           "no": 3,
-          "MaxPackets": 4000,
+          "MaxPackets": 5000,
           "Weight": 3,
           "Default": false,
-          "DestPort": 5555
+          "DestPort": 7000
         },
         {
           "no": 4,
-          "MaxPackets": 4000,
+          "MaxPackets": 5000,
           "Weight": 4,
           "Default": false,
-          "DestPort": 6666
+          "DestPort": 9000
         }
       ]
     }

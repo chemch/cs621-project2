@@ -4,7 +4,7 @@
 #include "filter.h"
 #include "diff-serv.h"
 #include "source-port-number.h"
-#include "destination-port-number.h" 
+#include "destination-port-number.h"
 #include "protocol-number.h"
 #include "source-mask.h"
 #include "spq.h"
@@ -19,943 +19,639 @@
 
 using namespace ns3;
 
+NS_LOG_COMPONENT_DEFINE("DiffservTests");
+
 DiffservTests::DiffservTests() {}
 
 /**
  * \ingroup diffserv
- * \brief Run all Diffserv tests.
+ * \brief Execute all Diffserv unit tests and log a summary.
  */
-void DiffservTests::RunAll()
+void
+DiffservTests::RunAll()
 {
-  int total = 0;
-  int passed = 0;
+    int total = 0;
+    int passed = 0;
 
-  std::cout << "\n-- Diffserv Tests --" << std::endl;
-  if (TestQueueDequeue()) passed++; total++;
-  if (TestDestinationIPAddress()) passed++; total++;
-  if (TestSourceIPAddress()) passed++; total++;
-  if (TestSourcePortNumber()) passed++; total++;
-  if (TestDestinationPortNumber()) passed++; total++;
-  if (TestSourceMask()) passed++; total++;
-  if (TestDestinationMask()) passed++; total++;
-  if (TestProtocolNumber()) passed++; total++;
-  if (TestFilter()) passed++; total++;
-  if (TestTrafficClass()) passed++; total++;
-  if (TestDiffServ()) passed++; total++;
-  if (TestSPQ()) passed++; total++;
-  if (TestDRR()) passed++; total++;
+    NS_LOG_UNCOND("\n-- Diffserv Tests --");
 
-  // Print summary of test results
-  std::cout << "\n-- Diffserv Tests Summary --" << std::endl;
-  std::cout << "Total tests run: " << total << std::endl;
-  std::cout << "Tests passed: " << passed << std::endl;
-  std::cout << "Tests failed: " << (total - passed) << std::endl;
+    if (TestQueueDequeue())         ++passed; ++total;
+    if (TestDestinationIPAddress()) ++passed; ++total;
+    if (TestSourceIPAddress())      ++passed; ++total;
+    if (TestSourcePortNumber())     ++passed; ++total;
+    if (TestDestinationPortNumber())++passed; ++total;
+    if (TestSourceMask())           ++passed; ++total;
+    if (TestDestinationMask())      ++passed; ++total;
+    if (TestProtocolNumber())       ++passed; ++total;
+    if (TestFilter())               ++passed; ++total;
+    if (TestTrafficClass())         ++passed; ++total;
+    if (TestDiffServ())             ++passed; ++total;
+    if (TestSPQ())                  ++passed; ++total;
+    if (TestDRR())                  ++passed; ++total;
+
+    NS_LOG_UNCOND("\n-- Diffserv Tests Summary --");
+    NS_LOG_UNCOND("Total tests run: " << total);
+    NS_LOG_UNCOND("Tests passed   : " << passed);
+    NS_LOG_UNCOND("Tests failed   : " << (total - passed));
 }
 
 /**
- * \brief Test the basic queue functions
+ * \brief Validate basic enqueue/dequeue behavior in TrafficClass.
+ * \returns true if test passes, false otherwise
  */
-bool DiffservTests::TestQueueDequeue()
+bool
+DiffservTests::TestQueueDequeue()
 {
-  std::cout << "-- [TestDiffServeCoreFunctionality] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestQueueDequeue] --");
 
-  // basic setup 
-  Ptr<Packet> pkt = Create<Packet>(10);
+    Ptr<Packet> pkt = Create<Packet>(10);
+    TrafficClass tc;
+    tc.Enqueue(pkt);
 
-  TrafficClass trafficClass;
-  trafficClass.Enqueue(pkt);
+    NS_LOG_UNCOND("\tQueue size after enqueue: " << tc.GetSize());
+    if (tc.GetSize() != 1)
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected queue size of 1.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Enqueue size correct.");
 
-  // print queue size
-  std::cout << "\tQueue size after enqueue: " << trafficClass.GetSize() << std::endl;
+    Ptr<Packet> outPkt = tc.Dequeue();
+    NS_LOG_UNCOND("\tDequeued packet size: " << outPkt->GetSize());
+    if (outPkt->GetSize() != 10)
+    {
+        NS_LOG_UNCOND("\tFAILED: Dequeued packet size mismatch.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Dequeued size correct.");
 
-  // expect queue size to be 1
-  if (trafficClass.GetSize() != 1)
-  {
-    std::cout << "\tFAILED: Queue size is not as expected." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Queue size is as expected." << std::endl;
-  }
+    NS_LOG_UNCOND("\tQueue empty? " << (tc.IsEmpty() ? "Yes" : "No"));
+    Ptr<Packet> secondDeq = tc.Dequeue();
+    NS_LOG_UNCOND("\tSecond dequeue: " << (secondDeq ? std::to_string(secondDeq->GetSize()) : "null"));
+    if (secondDeq)
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected null on empty dequeue.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Empty dequeue returns null.");
 
-  // Dequeue the packet
-  Ptr<Packet> dequeuedPktBasic = trafficClass.Dequeue();  
-
-  // print dequeued packet size
-  std::cout << "\tDequeued packet size: " << dequeuedPktBasic->GetSize() << std::endl;
-
-  // expect dequeued packet size to be 10
-  if (dequeuedPktBasic->GetSize() != 10)
-  {
-    std::cout << "\tFAILED: Dequeued packet size is not as expected." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Dequeued packet size is as expected." << std::endl;
-  }
-
-  // Check if the queue is empty
-  std::cout << "\tIs queue empty after dequeue? " << (trafficClass.IsEmpty() ? "Yes" : "No") << std::endl;
-
-  // try to dequeue again and see what happens
-  Ptr<Packet> dequeuedPkt2 = trafficClass.Dequeue();
-
-  // print dequeued packet size
-  std::cout << "\tDequeued packet size after second dequeue: " << (dequeuedPkt2 ? std::to_string(dequeuedPkt2->GetSize()) : "null") << std::endl;
-
-  // expect dequeued packet to be null
-  if (dequeuedPkt2 != nullptr)
-  {
-    std::cout << "\tFAILED: Dequeued packet is not null." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Dequeued packet is null as expected." << std::endl;
-  }
-
-  return true;
+    return true;
 }
 
 /**
- * \brief Test the DestinationIPAddress filter element.
+ * \brief Verify matching by DestinationIPAddress filter element.
+ * \returns true if filter matches correct IP and rejects wrong IP
  */
-bool DiffservTests::TestDestinationIPAddress()
+bool
+DiffservTests::TestDestinationIPAddress()
 {
-  std::cout << "-- [TestDestinationIPAddress] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestDestinationIPAddress] --");
 
-  Ptr<Packet> pkt = Create<Packet>(10);
-  Ipv4Header header;
-  header.SetDestination(Ipv4Address("8.8.8.8"));
-  pkt->AddHeader(header);
+    Ptr<Packet> pkt = Create<Packet>(10);
+    Ipv4Header hdr;
+    hdr.SetDestination(Ipv4Address("8.8.8.8"));
+    pkt->AddHeader(hdr);
+    pkt->AddHeader(PppHeader());
 
-  // add point to point header
-  PppHeader pppHeader;
-  pkt->AddHeader(pppHeader);
+    DestinationIPAddress match("8.8.8.8");
+    if (!match.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected destination 8.8.8.8 to match.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Correct destination matched.");
 
-  DestinationIPAddress matchingFilterElement(Ipv4Address("8.8.8.8"));
-  if (!matchingFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Destination did not match." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Correct destination matched." << std::endl;
-  }
+    DestinationIPAddress noMatch("4.4.4.4");
+    if (noMatch.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Unexpected match for 4.4.4.4.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Incorrect destination not matched.");
 
-  DestinationIPAddress wrongMatcher(Ipv4Address("4.4.4.4"));
-  if (wrongMatcher.Match(pkt))
-  {
-    std::cout << "\tFAILED: Incorrect match with wrong destination." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: No match for wrong destination." << std::endl;
-  }
-
-  return true;
+    return true;
 }
 
 /**
- * \brief Test the SourceIPAddress filter element.
+ * \brief Verify matching by SourceIPAddress filter element.
+ * \returns true if filter matches correct IP and rejects wrong IP
  */
-bool DiffservTests::TestSourceIPAddress()
+bool
+DiffservTests::TestSourceIPAddress()
 {
-  std::cout << "-- [TestSourceIPAddress] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestSourceIPAddress] --");
 
-  Ptr<Packet> pkt = Create<Packet>(10);
-  Ipv4Header header;
-  header.SetSource(Ipv4Address("1.1.1.1"));
-  pkt->AddHeader(header);
+    Ptr<Packet> pkt = Create<Packet>(10);
+    Ipv4Header hdr;
+    hdr.SetSource(Ipv4Address("1.1.1.1"));
+    pkt->AddHeader(hdr);
+    pkt->AddHeader(PppHeader());
 
-   // add point to point header
-  PppHeader pppHeader;
-  pkt->AddHeader(pppHeader);
+    SourceIPAddress match("1.1.1.1");
+    if (!match.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected source 1.1.1.1 to match.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Correct source matched.");
 
-  SourceIPAddress matchingFilterElement(Ipv4Address("1.1.1.1"));
-  if (!matchingFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Source did not match." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Correct source matched." << std::endl;
-  }
+    SourceIPAddress noMatch("5.5.5.5");
+    if (noMatch.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Unexpected match for 5.5.5.5.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Incorrect source not matched.");
 
-  SourceIPAddress wrongMatcher(Ipv4Address("5.5.5.5"));
-  if (wrongMatcher.Match(pkt))
-  {
-    std::cout << "\tFAILED: Incorrect match with wrong source." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: No match for wrong source." << std::endl;
-  }
-
-  return true;
+    return true;
 }
 
 /**
- * \brief Test the SourcePortNumber filter element.
+ * \brief Test SourcePortNumber filter for both TCP and UDP packets.
+ * \returns true if both protocol port tests pass
  */
-bool DiffservTests::TestSourcePortNumber()
+bool
+DiffservTests::TestSourcePortNumber()
 {
-  std::cout << "-- [TestSourcePortNumber] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestSourcePortNumber] --");
 
-  // Test TCP packet
-  {
+    // TCP case
+    {
+        Ptr<Packet> pkt = Create<Packet>(10);
+        TcpHeader tcpHdr;
+        tcpHdr.SetSourcePort(7500);
+        tcpHdr.SetDestinationPort(8080);
+        Ipv4Header ipHdr;
+        ipHdr.SetProtocol(6);  // TCP
+        pkt->AddHeader(tcpHdr);
+        pkt->AddHeader(ipHdr);
+        pkt->AddHeader(PppHeader());
+
+        SourcePortNumber matcherTCP(7500);
+        if (!matcherTCP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: TCP source port did not match.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: TCP source port matched.");
+
+        SourcePortNumber nonMatcherTCP(7000);
+        if (nonMatcherTCP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: Incorrect TCP source port matched.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: TCP wrong source port did not match.");
+    }
+
+    // UDP case
+    {
+        Ptr<Packet> pkt = Create<Packet>(10);
+        UdpHeader udpHdr;
+        udpHdr.SetSourcePort(33333);
+        udpHdr.SetDestinationPort(23);
+        Ipv4Header ipHdr;
+        ipHdr.SetProtocol(17);  // UDP
+        pkt->AddHeader(udpHdr);
+        pkt->AddHeader(ipHdr);
+        pkt->AddHeader(PppHeader());
+
+        SourcePortNumber matcherUDP(33333);
+        if (!matcherUDP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: UDP source port did not match.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: UDP source port matched.");
+
+        SourcePortNumber nonMatcherUDP(22222);
+        if (nonMatcherUDP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: Incorrect UDP source port matched.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: UDP wrong source port did not match.");
+    }
+
+    return true;
+}
+
+/**
+ * \brief Test DestinationPortNumber filter for both TCP and UDP packets.
+ * \returns true if both protocol port tests pass
+ */
+bool
+DiffservTests::TestDestinationPortNumber()
+{
+    NS_LOG_UNCOND("-- [TestDestinationPortNumber] --");
+
+    // TCP case
+    {
+        Ptr<Packet> pkt = Create<Packet>(10);
+        TcpHeader tcpHdr;
+        tcpHdr.SetSourcePort(7500);
+        tcpHdr.SetDestinationPort(8080);
+        Ipv4Header ipHdr;
+        ipHdr.SetProtocol(6);
+        pkt->AddHeader(tcpHdr);
+        pkt->AddHeader(ipHdr);
+        pkt->AddHeader(PppHeader());
+
+        DestinationPortNumber matcherTCP(8080);
+        if (!matcherTCP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: TCP destination port did not match.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: TCP destination port matched.");
+
+        DestinationPortNumber nonMatcherTCP(7000);
+        if (nonMatcherTCP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: Incorrect TCP destination port matched.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: TCP wrong destination port did not match.");
+    }
+
+    // UDP case
+    {
+        Ptr<Packet> pkt = Create<Packet>(10);
+        UdpHeader udpHdr;
+        udpHdr.SetSourcePort(33333);
+        udpHdr.SetDestinationPort(100);
+        Ipv4Header ipHdr;
+        ipHdr.SetProtocol(17);
+        pkt->AddHeader(udpHdr);
+        pkt->AddHeader(ipHdr);
+        pkt->AddHeader(PppHeader());
+
+        DestinationPortNumber matcherUDP(100);
+        if (!matcherUDP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: UDP destination port did not match.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: UDP destination port matched.");
+
+        DestinationPortNumber nonMatcherUDP(22222);
+        if (nonMatcherUDP.Match(pkt))
+        {
+            NS_LOG_UNCOND("\tFAILED: Incorrect UDP destination port matched.");
+            return false;
+        }
+        NS_LOG_UNCOND("\tPASSED: UDP wrong destination port did not match.");
+    }
+
+    return true;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Test DestinationMask filter element behavior.
+ * \returns true if mask matching and mismatching succeed
+ */
+bool
+DiffservTests::TestDestinationMask()
+{
+    NS_LOG_UNCOND("-- [TestDestinationMask] --");
+
+    Ptr<Packet> pkt = Create<Packet>(10);
+    Ipv4Header hdr;
+    hdr.SetDestination(Ipv4Address("192.168.1.5"));
+    pkt->AddHeader(hdr);
+    pkt->AddHeader(PppHeader());
+
+    Ipv4Mask mask("255.0.0.0");
+    Ipv4Address netAddr("192.0.0.0");
+    DestinationMask matcher(mask, netAddr);
+    if (!matcher.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected mask to match destination.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Destination mask matched correctly.");
+
+    DestinationMask wrong(mask, Ipv4Address("19.0.0.0"));
+    if (wrong.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Incorrect mask matched destination.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Incorrect mask did not match.");
+
+    return true;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Test SourceMask filter element behavior.
+ * \returns true if mask matching and mismatching succeed
+ */
+bool
+DiffservTests::TestSourceMask()
+{
+    NS_LOG_UNCOND("-- [TestSourceMask] --");
+
+    Ptr<Packet> pkt = Create<Packet>(10);
+    Ipv4Header hdr;
+    hdr.SetSource(Ipv4Address("192.168.1.1"));
+    pkt->AddHeader(hdr);
+    pkt->AddHeader(PppHeader());
+
+    Ipv4Mask mask("255.255.0.0");
+    Ipv4Address netAddr("192.168.0.0");
+    SourceMask matcher(mask, netAddr);
+    if (!matcher.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected mask to match source.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Source mask matched correctly.");
+
+    SourceMask wrong(mask, Ipv4Address("192.167.2.0"));
+    if (wrong.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Incorrect mask matched source.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Incorrect mask did not match.");
+
+    return true;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Test ProtocolNumber filter element behavior.
+ * \returns true if correct protocol matches and incorrect does not
+ */
+bool
+DiffservTests::TestProtocolNumber()
+{
+    NS_LOG_UNCOND("-- [TestProtocolNumber] --");
+
+    Ptr<Packet> pkt = Create<Packet>(10);
+    Ipv4Header hdr;
+    hdr.SetProtocol(6);  // TCP
+    pkt->AddHeader(hdr);
+    pkt->AddHeader(PppHeader());
+
+    ProtocolNumber matcher(6);
+    if (!matcher.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Expected TCP protocol to match.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: TCP protocol matched correctly.");
+
+    ProtocolNumber wrong(17);  // UDP
+    if (wrong.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Unexpected UDP protocol match.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: UDP protocol did not match (correct).");
+
+    return true;
+}
+
+
+/**
+ * \ingroup diffserv
+ * \brief Test the Filter container logic.
+ * \returns true if dummy filter elements behave correctly.
+ */
+bool
+DiffservTests::TestFilter()
+{
+    NS_LOG_UNCOND("-- [TestFilter] --");
+
+    class DummyElement : public FilterElement
+    {
+    public:
+        DummyElement(bool res) : m_res(res) {}
+        bool Match(Ptr<Packet>) const override { return m_res; }
+    private:
+        bool m_res;
+    };
+
     Ptr<Packet> pkt = Create<Packet>(10);
 
-    TcpHeader tcpHeader;
-    tcpHeader.SetSourcePort(7500);
-    tcpHeader.SetDestinationPort(8080);
-
-    Ipv4Header ipv4Header;
-    ipv4Header.SetProtocol(6); // TCP
-
-    pkt->AddHeader(tcpHeader);
-    pkt->AddHeader(ipv4Header);
-
-    // Add PPP header
-    PppHeader pppHeader;
-    pkt->AddHeader(pppHeader);
-
-    SourcePortNumber matchingFilterElementTCP(7500);
-    if (!matchingFilterElementTCP.Match(pkt))
+    Filter all;
+    all.AddFilterElement(new DummyElement(true));
+    all.AddFilterElement(new DummyElement(true));
+    if (!all.Match(pkt))
     {
-      std::cout << "\tFAILED: TCP source port did not match." << std::endl;
-      return false;
+        NS_LOG_UNCOND("\tFAILED: All elements should match.");
+        return false;
     }
-    else
+    NS_LOG_UNCOND("\tPASSED: All elements matched.");
+
+    Filter oneFail;
+    oneFail.AddFilterElement(new DummyElement(true));
+    oneFail.AddFilterElement(new DummyElement(false));
+    if (oneFail.Match(pkt))
     {
-      std::cout << "\tPASSED: TCP source port matched." << std::endl;
+        NS_LOG_UNCOND("\tFAILED: Should fail when one element mismatches.");
+        return false;
     }
+    NS_LOG_UNCOND("\tPASSED: Filter failed when one element mismatched.");
 
-    SourcePortNumber nonMatchingFilterElementTCP(7000);
-    if (nonMatchingFilterElementTCP.Match(pkt))
-    {
-      std::cout << "\tFAILED: Incorrect TCP source port matched." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: TCP wrong source port did not match." << std::endl;
-    }
-  }
-
-  // Test UDP packet
-  {
-    Ptr<Packet> pkt = Create<Packet>(10);
-
-    UdpHeader udpHeader;
-    udpHeader.SetSourcePort(33333);
-    udpHeader.SetDestinationPort(23);
-
-    Ipv4Header ipv4Header;
-    ipv4Header.SetProtocol(17); // UDP
-
-    pkt->AddHeader(udpHeader);
-    pkt->AddHeader(ipv4Header);
-
-    // Add PPP header
-    PppHeader pppHeader;
-    pkt->AddHeader(pppHeader);
-
-    SourcePortNumber matchingFilterElementUDP(33333);
-    if (!matchingFilterElementUDP.Match(pkt))
-    {
-      std::cout << "\tFAILED: UDP source port did not match." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: UDP source port matched." << std::endl;
-    }
-
-    SourcePortNumber nonMatchingFilterElementUDP(22222);
-    if (nonMatchingFilterElementUDP.Match(pkt))
-    {
-      std::cout << "\tFAILED: Incorrect UDP source port matched." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: UDP wrong source port did not match." << std::endl;
-    }
-  }
-
-  return true;
-}
-
-/**
- * \brief Test the DestinationPortNumber filter element.
- */
-bool DiffservTests::TestDestinationPortNumber()
-{
-  std::cout << "-- [TestDestinationPortNumber] --" << std::endl;
-
-  // Test TCP packet
-  {
-    Ptr<Packet> pkt = Create<Packet>(10);
-
-    TcpHeader tcpHeader;
-    tcpHeader.SetSourcePort(7500);
-    tcpHeader.SetDestinationPort(8080);
-
-    Ipv4Header ipv4Header;
-    ipv4Header.SetProtocol(6); // TCP
-
-    pkt->AddHeader(tcpHeader);
-    pkt->AddHeader(ipv4Header);
-
-    // Add PPP header
-    PppHeader pppHeader;
-    pkt->AddHeader(pppHeader);
-
-    DestinationPortNumber matchingFilterElementTCP(8080);
-    if (!matchingFilterElementTCP.Match(pkt))
-    {
-      std::cout << "\tFAILED: TCP destination port did not match." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: TCP destination port matched." << std::endl;
-    }
-
-    DestinationPortNumber nonMatchingFilterElementTCP(7000);
-    if (nonMatchingFilterElementTCP.Match(pkt))
-    {
-      std::cout << "\tFAILED: Incorrect TCP destination port matched." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: TCP wrong destination port did not match." << std::endl;
-    }
-  }
-
-  // Test UDP packet
-  {
-    Ptr<Packet> pkt = Create<Packet>(10);
-
-    UdpHeader udpHeader;
-    udpHeader.SetSourcePort(33333);
-    udpHeader.SetDestinationPort(100);
-
-    Ipv4Header ipv4Header;
-    ipv4Header.SetProtocol(17); // UDP
-
-    pkt->AddHeader(udpHeader);
-    pkt->AddHeader(ipv4Header);
-
-    // Add PPP header
-    PppHeader pppHeader;
-    pkt->AddHeader(pppHeader);
-
-    DestinationPortNumber matchingFilterElementUDP(100);
-    if (!matchingFilterElementUDP.Match(pkt))
-    {
-      std::cout << "\tFAILED: UDP destination port did not match." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: UDP destination port matched." << std::endl;
-    }
-
-    DestinationPortNumber nonMatchingFilterElementUDP(22222);
-    if (nonMatchingFilterElementUDP.Match(pkt))
-    {
-      std::cout << "\tFAILED: Incorrect UDP destination port matched." << std::endl;
-      return false;
-    }
-    else
-    {
-      std::cout << "\tPASSED: UDP wrong destination port did not match." << std::endl;
-    }
-  }
-
-  return true;
+    return true;
 }
 
 /**
  * \ingroup diffserv
- * \brief Test the DestinationMask filter element.
- *
- * This test creates packets with specific IP addresses and checks
- * if the DestinationMask filter element correctly matches using masking logic.
- *
- * \returns true if the test passes, false otherwise.
+ * \brief Test basic TrafficClass operations.
+ * \returns true if enqueue, peek, dequeue, and filter match operate correctly.
  */
-bool DiffservTests::TestDestinationMask()
+bool
+DiffservTests::TestTrafficClass()
 {
-  std::cout << "-- [TestDestinationMask] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestTrafficClass] --");
 
-  Ptr<Packet> pkt = Create<Packet>(10);
+    TrafficClass tc;
+    if (!tc.IsEmpty())
+    {
+        NS_LOG_UNCOND("\tFAILED: Should be empty initially.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Initially empty.");
 
-  // Create an IPv4 header with IP
-  Ipv4Header header;
-  header.SetDestination(Ipv4Address("192.168.1.5"));
-  pkt->AddHeader(header);
+    if (tc.GetMaxPackets() != 100)
+    {
+        NS_LOG_UNCOND("\tFAILED: Default max packets should be 100.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Default max packets is correct.");
 
-  // Add PPP header
-  PppHeader pppHeader;
-  pkt->AddHeader(pppHeader);
+    Ptr<Packet> pkt = Create<Packet>(20);
+    if (!tc.Enqueue(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Enqueue failed.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Packet enqueued.");
 
-  // Mask: /24 subnet mask (255.0.0.0)
-  Ipv4Mask mask("255.0.0.0");
+    if (tc.IsEmpty())
+    {
+        NS_LOG_UNCOND("\tFAILED: Should not be empty after enqueue.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Not empty after enqueue.");
 
-  // Base network address that should match after masking
-  Ipv4Address expectedNetwork("192.0.0.0");
+    Ptr<Packet> peek = tc.Peek();
+    if (!peek)
+    {
+        NS_LOG_UNCOND("\tFAILED: Peek returned null.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Peek returned valid packet.");
 
-  // Create Mask filter
-  DestinationMask matchingFilterElement(mask, expectedNetwork);
+    Ptr<Packet> dq = tc.Dequeue();
+    if (!dq)
+    {
+        NS_LOG_UNCOND("\tFAILED: Dequeue returned null.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Dequeue returned valid packet.");
 
-  // Check match
-  if (!matchingFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Destination mask match failed." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Mask matched correctly." << std::endl;
-  }
+    if (!tc.IsEmpty())
+    {
+        NS_LOG_UNCOND("\tFAILED: Should be empty after dequeue.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Empty after dequeue.");
 
-  // Now test a non-matching case
-  DestinationMask wrongFilterElement(mask, Ipv4Address("19.0.0.0"));
-  if (wrongFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Incorrect mask matched." << std::endl;
-    return false;
-  }
-  else
-  {
-    // Correct mask would've been 19.0.0.0
-    std::cout << "\tPASSED: Incorrect mask did not match (which is correct)." << std::endl;
-  }
+    class AlwaysFilter : public Filter
+    {
+    public:
+        bool Match(Ptr<Packet>) const { return true; }
+    };
 
-  return true;
-}
+    AlwaysFilter* f = new AlwaysFilter();
+    tc.AddFilter(f);
+    if (!tc.Match(pkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Match should return true with AlwaysFilter.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Match returned true with AlwaysFilter.");
 
-
-/**
- * \ingroup diffserv
- * \brief Test the SourceMask filter element.
- *
- * This test creates packets with specific source IP addresses and checks
- * if the SourceMask filter element correctly matches using masking logic.
- *
- * \returns true if the test passes, false otherwise.
- */
-bool DiffservTests::TestSourceMask()
-{
-  std::cout << "-- [TestSourceMask] --" << std::endl;
-
-  Ptr<Packet> pkt = Create<Packet>(10);
-
-  // Create an IPv4 header with source IP
-  Ipv4Header header;
-  header.SetSource(Ipv4Address("192.168.1.1"));
-  pkt->AddHeader(header);
-
-  // Add PPP header
-  PppHeader pppHeader;
-  pkt->AddHeader(pppHeader);
-
-  // Mask: /24 subnet mask (255.255.0.0)
-  Ipv4Mask mask("255.255.0.0");
-
-  // Base network address that should match after masking
-  Ipv4Address expectedNetwork("192.168.0.0");
-
-  // Create SourceMask filter
-  SourceMask matchingFilterElement(mask, expectedNetwork);
-
-  // Check match
-  if (!matchingFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Source mask match failed." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Source mask matched correctly." << std::endl;
-  }
-
-  // Now test a non-matching case
-  SourceMask wrongFilterElement(mask, Ipv4Address("192.167.2.0"));
-  if (wrongFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Incorrect source mask matched." << std::endl;
-    return false;
-  }
-  else
-  {
-    // Correct source mask would've been 192.167.0.0
-    std::cout << "\tPASSED: Incorrect source mask did not match (which is correct)." << std::endl;
-  }
-
-  return true;
+    return true;
 }
 
 /**
  * \ingroup diffserv
- * \brief Test the ProtocolNumber filter element.
- *
- * This test creates packets with specific protocol numbers and checks
- * if the ProtocolNumber filter element correctly matches.
- *
- * \returns true if the test passes.
+ * \brief Test DiffServ enqueue, dequeue, and peek logic.
+ * \returns true if operations succeed with dummy traffic class.
  */
-bool DiffservTests::TestProtocolNumber()
+bool
+DiffservTests::TestDiffServ()
 {
-  std::cout << "-- [TestProtocolNumber] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestDiffServ] --");
 
-  Ptr<Packet> pkt = Create<Packet>(10);
+    class DummyTC : public TrafficClass
+    {
+    public:
+        bool Match(Ptr<Packet>) const  { return true; }
+        bool Enqueue(Ptr<Packet> p)  { m_p = p; return true; }
+        Ptr<Packet> Dequeue()  { return m_p; }
+        Ptr<const Packet> Peek() const { return m_p; }
+    private:
+        Ptr<Packet> m_p;
+    };
 
-  // Create an IPv4 header with protocol TCP
-  Ipv4Header header;
-  header.SetProtocol(6);
-  pkt->AddHeader(header);
+    class TestDS : public DiffServ
+    {
+    public:
+        Ptr<const Packet> Schedule() const 
+        {
+            if (!m_pkt) m_pkt = Create<Packet>(30);
+            return m_pkt;
+        }
+    private:
+        mutable Ptr<Packet> m_pkt;
+    };
 
-  // Add PPP header
-  PppHeader pppHeader;
-  pkt->AddHeader(pppHeader);
+    Ptr<Packet> testPkt = Create<Packet>(42);
+    TestDS ds;
+    DummyTC* dtc = new DummyTC();
+    ds.AddQueue(dtc);
 
-  // Create ProtocolNumber matcher for TCP
-  ProtocolNumber matchingFilterElement(6);
+    if (!ds.Enqueue(testPkt))
+    {
+        NS_LOG_UNCOND("\tFAILED: Enqueue in DiffServ.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Enqueue in DiffServ.");
 
-  if (!matchingFilterElement.Match(pkt))
-  {
-    std::cout << "\tFAILED: Protocol TCP match failed." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Protocol TCP matched correctly." << std::endl;
-  }
+    Ptr<Packet> rd = ds.Dequeue();
+    if (!rd)
+    {
+        NS_LOG_UNCOND("\tFAILED: Dequeue in DiffServ.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Dequeue in DiffServ.");
 
-  // Now create a matcher expecting UDP (17), which should NOT match
-  ProtocolNumber wrongMatcher(17);
-  if (wrongMatcher.Match(pkt))
-  {
-    std::cout << "\tFAILED: Incorrect protocol (UDP) matched." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Incorrect protocol (UDP) did not match (correct)." << std::endl;
-  }
+    Ptr<const Packet> pk = ds.Peek();
+    if (!pk)
+    {
+        NS_LOG_UNCOND("\tFAILED: Peek in DiffServ.");
+        return false;
+    }
+    NS_LOG_UNCOND("\tPASSED: Peek in DiffServ.");
 
-  return true;
+    return true;
 }
 
 /**
  * \ingroup diffserv
- * \brief Test the Filter class.
- *
- * This test creates a Filter with dummy filter elements that either match or don't match,
- * and checks if the Filter::Match() behaves correctly.
- *
- * \returns true if the test passes.
+ * \brief Test SPQ scheduling (highest priority first).
+ * \returns true if SPQ schedules correctly.
  */
-bool DiffservTests::TestFilter()
+bool
+DiffservTests::TestSPQ()
 {
-  std::cout << "-- [TestFilter] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestSPQ] --");
 
-  // Dummy class to simulate FilterElements
-  class TestFilterElement : public FilterElement
-  {
-  public:
+    SPQ spq;
+    TrafficClass* high = new TrafficClass(); high->SetPriorityLevel(0);
+    TrafficClass* low  = new TrafficClass(); low->SetPriorityLevel(1);
+    spq.AddQueue(high); spq.AddQueue(low);
 
-    // Constructor
-    TestFilterElement(bool shouldMatch)
-      : m_shouldMatch(shouldMatch) {}
+    Ptr<Packet> ph = Create<Packet>(20);
+    Ptr<Packet> pl = Create<Packet>(10);
+    spq.Enqueue(ph); spq.Enqueue(pl);
 
-    // Override the Match method (just return the stored value)
-    bool Match(Ptr<Packet> packet) const override
-    {
-      return m_shouldMatch;
-    }
+    Ptr<const Packet> sch = spq.Schedule();
+    NS_LOG_UNCOND("\tScheduled size: " << (sch ? sch->GetSize() : 0));
+    Ptr<Packet> dq = spq.Dequeue();
+    NS_LOG_UNCOND("\tDequeued size: " << (dq ? dq->GetSize() : 0));
 
-  private:
-    bool m_shouldMatch;
-  };
-
-  // Create a packet to test against
-  Ptr<Packet> pkt = Create<Packet>(10);
-
-  // Test case where all filter elements match
-  Filter filterAllMatch;
-  filterAllMatch.AddFilterElement(new TestFilterElement(true));
-  filterAllMatch.AddFilterElement(new TestFilterElement(true));
-
-  // Should match since all elements are set to true (directly)
-  if (!filterAllMatch.Match(pkt))
-  {
-    std::cout << "\tFAILED: All filter elements should have matched." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: All filter elements matched correctly." << std::endl;
-  }
-
-  // Test case where one filter element fails
-  Filter filterOneFails;
-  filterOneFails.AddFilterElement(new TestFilterElement(true));
-  filterOneFails.AddFilterElement(new TestFilterElement(false));
-
-  // Should fail since one element is set to false
-  if (filterOneFails.Match(pkt))
-  {
-    std::cout << "\tFAILED: Filter matched even though one element should have failed." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Filter correctly failed when one element did not match." << std::endl;
-  }
-
-  return true;
+    return true;
 }
 
 /**
  * \ingroup diffserv
- * \brief Test the TrafficClass.
- *
- * This test checks queue operations, filter matching, and initial state behavior.
- *
- * \returns true if the test passes. Return false on unexpected fails. 
+ * \brief Test DRR scheduling (deficit round robin).
+ * \returns true if expected packet is dequeued.
  */
-bool DiffservTests::TestTrafficClass()
+bool
+DiffservTests::TestDRR()
 {
-  std::cout << "-- [TestTrafficClass] --" << std::endl;
+    NS_LOG_UNCOND("-- [TestDRR] --");
 
-  TrafficClass trafficClass;
+    DRR drr;
+    TrafficClass* tw = new TrafficClass(); tw->SetWeight(70);
+    TrafficClass* tl = new TrafficClass(); tl->SetWeight(50);
+    drr.AddQueue(tl); drr.AddQueue(tw);
 
-  // Should be empty initially
-  if (!trafficClass.IsEmpty())
-  {
-    std::cout << "\tFAILED: TrafficClass should be empty initially." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: TrafficClass initially empty." << std::endl;
-  }
+    Ptr<Packet> ph = Create<Packet>(80);
+    Ptr<Packet> pl = Create<Packet>(40);
+    tw->Enqueue(ph); tl->Enqueue(pl);
 
-  // Check default max packets
-  if (trafficClass.GetMaxPackets() != 100)
-  {
-    std::cout << "\tFAILED: Default max packets should be 100." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Default max packets is 100." << std::endl;
-  }
-
-  // Enqueue a packet
-  Ptr<Packet> pkt = Create<Packet>(20);
-  if (!trafficClass.Enqueue(pkt))
-  {
-    std::cout << "\tFAILED: Enqueue failed unexpectedly." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Packet enqueued successfully." << std::endl;
-  }
-
-  if (trafficClass.IsEmpty())
-  {
-    std::cout << "\tFAILED: TrafficClass should not be empty after Enqueue." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: TrafficClass is not empty after Enqueue." << std::endl;
-  }
-
-  // Peek packet
-  Ptr<Packet> peekPkt = trafficClass.Peek();
-  if (peekPkt == nullptr)
-  {
-    std::cout << "\tFAILED: Peek returned null packet." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Peek returned a valid packet." << std::endl;
-  }
-
-  // Dequeue packet
-  Ptr<Packet> dequeuedPkt = trafficClass.Dequeue();
-  if (dequeuedPkt == nullptr)
-  {
-    std::cout << "\tFAILED: Dequeue returned null packet." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Dequeue returned a valid packet." << std::endl;
-  }
-
-  if (!trafficClass.IsEmpty())
-  {
-    std::cout << "\tFAILED: TrafficClass should be empty after Dequeue." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: TrafficClass empty after Dequeue." << std::endl;
-  }
-
-  // Test Filter class - always true (match)
-  class TestFilter : public Filter
-  {
-  public:
-    bool Match(Ptr<Packet> pkt) const
-    {
-      return true;
-    }
-  };
-
-  // Important Test Here (Test Filter and Match Functionality)
-  TestFilter* testFilter = new TestFilter();
-  trafficClass.AddFilter(testFilter);
-
-  // Check that there is a match on the packet
-  if (!trafficClass.Match(pkt))
-  {
-    std::cout << "\tFAILED: TrafficClass Match() failed with Filter." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: TrafficClass Match() worked perfectly. Yes." << std::endl;
-  }
-
-  return true;
-}
-
-/**
- * \ingroup diffserv
- * \brief Test the DiffServ class enqueue, dequeue, and classify behavior.
- */
-bool DiffservTests::TestDiffServ()
-{
-  std::cout << "-- [TestDiffServ] --" << std::endl;
-
-  class DummyTrafficClass : public TrafficClass
-  {
-  public:
-    bool Match(Ptr<Packet> pkt) const
-    {
-      return true;
-    }
-
-    bool Enqueue(Ptr<Packet> pkt)
-    {
-      m_pkt = pkt;
-      return true;
-    }
-
-    Ptr<Packet> Dequeue()
-    {
-      return m_pkt;
-    }
-
-    Ptr<Packet> Peek() const
-    {
-      return m_pkt;
-    }
-
-    Ptr<Packet> Remove()
-    {
-      return m_pkt;
-    }
-
-  private:
-    Ptr<Packet> m_pkt;
-  };
-
-  // Create DiffServ instance and test traffic class
-  class TestDiffServImpl : public DiffServ
-  {
-  public:
-
-    /**
-     * Define test Schedule behavior to always return a packet.
-     * This is a dummy implementation for testing purposes.
-     *  */  
-    Ptr<const Packet> Schedule() const override
-    {
-      // Always return a scheduled packet for test
-      if (!m_dummyPkt)
-      {
-        m_dummyPkt = Create<Packet>(30);
-      }
-
-      return m_dummyPkt;
-    }
-
-  private:
-    mutable Ptr<Packet> m_dummyPkt;
-  };
-
-  Ptr<Packet> testPkt = Create<Packet>(42);
-
-  TestDiffServImpl diffserv;
-  DummyTrafficClass* trafficClass = new DummyTrafficClass();
-  diffserv.AddQueue(trafficClass);
-
-  // Test Enqueue
-  if (!diffserv.Enqueue(testPkt))
-  {
-    std::cout << "\tFAILED: DiffServ failed to enqueue packet." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: DiffServ enqueue successful." << std::endl;
-  }
-
-  // Test Dequeue
-  Ptr<Packet> dqPkt = diffserv.Dequeue();
-  if (dqPkt == nullptr)
-  {
-    std::cout << "\tFAILED: DiffServ dequeue returned null." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: DiffServ dequeue returned valid packet." << std::endl;
-  }
-
-  // Test Peek
-  Ptr<const Packet> peekPkt = diffserv.Peek();
-  if (peekPkt == nullptr)
-  {
-    std::cout << "\tFAILED: DiffServ peek returned null." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: DiffServ peek returned valid packet." << std::endl;
-  }
-
-  return true;
-}
-
-
-/**
- * \ingroup diffserv
- * \brief Test the SPQ (Strict Priority Queue) scheduling logic.
- *
- * This test creates multiple TrafficClass instances with varying priorities,
- * enqueues packets in them, and ensures SPQ::Schedule returns the one
- * from the highest priority (lowest priority number).
- */
-bool DiffservTests::TestSPQ()
-{
-  std::cout << "-- [TestSPQ] --" << std::endl;
-
-  SPQ mySpqTest;
-
-  // Define test traffic classes
-  TrafficClass* highPriority = new TrafficClass();
-  highPriority->SetPriorityLevel(0);
-
-  TrafficClass* lowPriority = new TrafficClass();
-  lowPriority->SetPriorityLevel(1);
-
-  mySpqTest.AddQueue(highPriority);
-  mySpqTest.AddQueue(lowPriority);
-
-  // Add one packet to each class
-  Ptr<Packet> pktHigh = Create<Packet>(20);
-  Ptr<Packet> pktLow = Create<Packet>(10);
-
-  mySpqTest.Enqueue(pktHigh);
-  mySpqTest.Enqueue(pktLow);
-
-  // remove the scheduled packet from the queue
-  Ptr<const Packet> removedPkt = mySpqTest.Remove();
-
-  // print the removed packet
-  std::cout << "\tRemoved packet size: " << (removedPkt ? std::to_string(removedPkt->GetSize()) : "null") << std::endl;
-
-  // Expect schedule to return the highest priority
-  Ptr<const Packet> scheduled = mySpqTest.Schedule();
-
-  // print scheduled packet size
-  std::cout << "\tScheduled packet size: " << (scheduled ? std::to_string(scheduled->GetSize()) : "null") << std::endl;
-
-  // try dequeueuing from the SPQ
-  Ptr<Packet> dequeuedPkt = mySpqTest.Dequeue();
-  
-  // print dequeued packet size
-  std::cout << "\tDequeued packet size: " << (dequeuedPkt ? std::to_string(dequeuedPkt->GetSize()) : "null") << std::endl;
-
-  return true;
-}
-
-/**
- * \ingroup diffserv
- * \brief Test the DRR (Deficit Round Robin) scheduling logic.
- *
- * This test creates two TrafficClasses with different weights and enqueues
- * packets into them. It verifies that DRR schedules and dequeues packets
- * according to the DRR algorithm.
- */
-bool DiffservTests::TestDRR()
-{
-  std::cout << "-- [TestDRR] --" << std::endl;
-
-  DRR drr;
-
-  // Create traffic classes with different weights
-  TrafficClass* highWeight = new TrafficClass();
-  TrafficClass* lowWeight = new TrafficClass();
-
-  highWeight->SetWeight(70); // High weight
-  lowWeight->SetWeight(50);   
-
-  drr.AddQueue(lowWeight);
-  drr.AddQueue(highWeight);
-
-  // Enqueue packets
-  Ptr<Packet> pktHigh = Create<Packet>(80);
-  Ptr<Packet> pktLow = Create<Packet>(40);
-
-  highWeight->Enqueue(pktHigh);
-  lowWeight->Enqueue(pktLow);
-
-  // now dequeue the scheduled packet
-  Ptr<Packet> dequeuedPkt = drr.Dequeue();
-
-  std::cout << "\tDequeued packet size: " << (dequeuedPkt ? std::to_string(dequeuedPkt->GetSize()) : "null") << std::endl;
-
-  // expect the dequeued packet to be the low-weight packet
-  if (dequeuedPkt != pktLow)
-  {
-    std::cout << "\tFAILED: Dequeued packet is not the expected low-weight packet." << std::endl;
-    return false;
-  }
-  else
-  {
-    std::cout << "\tPASSED: Dequeued packet is the expected low-weight packet." << std::endl;
-  }
-
-  return true;
+    Ptr<Packet> dq = drr.Dequeue();
+    NS_LOG_UNCOND("\tDequeued size: " << (dq ? dq->GetSize() : 0));
+    return (dq == pl);
 }
