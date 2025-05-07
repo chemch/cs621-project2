@@ -66,38 +66,6 @@ namespace ns3 {
     }
 
     /**
-     * Removes the next scheduled packet from the active queue
-     * and updates the active_queue index and next_deficit_counter vector
-     * \returns packet that has been removed
-     */
-    Ptr<Packet> DRR::Remove()
-    {
-        // Get queues to check if they are empty
-        std::vector<TrafficClass*> queues = GetQueues();
-
-        // Check if there are any queues to serve
-        if (nextQueue >= queues.size() || queues[nextQueue]->IsEmpty())
-        {
-            NS_LOG_UNCOND("No queues to serve or the next active queue is empty.");
-            return nullptr;
-        }
-
-        // Dequeue the packet from the next active queue
-        Ptr<Packet> removePkt = queues[nextQueue]->Dequeue(); 
-
-        if (removePkt != nullptr)
-        {
-            NS_LOG_UNCOND("Packet removed from queue: " << nextQueue);
-
-            // Roll over to the next queue and update the quantum
-            currentQueue = nextQueue;
-            queueQuantum = tempDeficitCounter;
-        }
-
-        return removePkt;
-    }
-
-    /**
      * \ingroup diffserv
      * \brief Schedules the next packet to be dequeued based on the DRR algorithm.
      * \details This function iterates through the queues and checks if the packet size is less than or equal to the quantum.

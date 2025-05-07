@@ -25,12 +25,6 @@ namespace ns3 {
         Ptr<Packet> Dequeue() override;
 
         /**
-         * \brief Remove the next packet from the active queue.
-         * \returns Ptr<Packet> removed packet or nullptr if none available.
-         */
-        Ptr<Packet> Remove() override;
-
-        /**
          * \brief Select the next packet to be dequeued based on DRR.
          * \returns Ptr<const Packet> packet at the front of the scheduled queue.
          */
