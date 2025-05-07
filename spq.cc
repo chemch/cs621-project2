@@ -4,10 +4,7 @@
 #include <optional>
 #include "ns3/log.h"
 
-NS_LOG_COMPONENT_DEFINE ("SPQ");
-
 namespace ns3 {
-
     // Constant for debugging
     // This is used to enable or disable logging for the SPQ class
     static const bool SPQ_LOG_ENABLED = false;

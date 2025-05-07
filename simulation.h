@@ -43,61 +43,60 @@ namespace ns3 {
     };
 
     class Simulation {
-    public:
-        // Parsed QoS data
-        QosConfiguration qosConfig;
+        public:
+            // Parsed QoS data
+            QosConfiguration qosConfig;
 
-        // Queue scheduler instances
-        Ptr<SPQ> spq;
-        Ptr<DRR> drr;
+            // Queue scheduler instances
+            Ptr<SPQ> spq;
+            Ptr<DRR> drr;
 
-        // Handler for JSON parsing
-        bool parseConfigs(const std::string& configFileName);
+            // Handler for JSON parsing
+            bool parseConfigs(const std::string& configFileName);
 
-        // Print the parsed configuration
-        void PrintConfig() const;
+            // Print the parsed configuration
+            void PrintConfig() const;
 
-        // Initialize the topology
-        void InitializeTopology();
+            // Initialize the topology
+            void InitializeTopology();
 
-        // Set up Qos scheduler (SPQ or )
-        void InitializeQosScheduler();
+            // Set up Qos scheduler (SPQ or )
+            void InitializeQosScheduler();
 
-        // Queue scheduler construction
-        void InitializeSpq();
-        void InitializeDrr();
+            // Queue scheduler customization
+            // This function sets up the queue scheduler for the second link (router0 to node1)
+            void InitializeUdpApplication();
 
-        // Queue scheduler customization
-        // This function sets up the queue scheduler for the second link (router0 to node1)
-        // based on the QoS type (SPQ or DRR)
-        void InitializeUdpApplication();
+        private:
+            // Set constant values for packet size and interval
+            static constexpr uint32_t PACKET_SIZE = 1000;
+            static const Time PACKET_TRANS_INTERVAL;
 
-        // Network and app setup
-        void InitializeSpqUdpApplication();
-        void InitializeDrrUdpApplication();
+            // Node and topology
+            Ptr<Node> node0, router0, node1;
+            NodeContainer allNodesContainer;
+            NetDeviceContainer networkDevice0, networkDevice1;
 
-    private:
-        // Set constant values for packet size and interval
-        static constexpr uint32_t PACKET_SIZE = 1000;
-        static const Time     PACKET_TRANS_INTERVAL;
+            // IP address containers
+            // These are used to assign IP addresses to the devices
+            Ipv4InterfaceContainer networkDevice0Interface, networkDevice1Interface;
 
-        // Node and topology
-        Ptr<Node> node0, router0, node1;
-        NodeContainer allNodesContainer;
-        NetDeviceContainer networkDevice0, networkDevice1;
+            // Point-to-point links 
+            // Link 0 is between node0 and router
+            // Link 1 is between router and node1
+            PointToPointHelper link0Ptp, link1Ptp;
 
-        // IP address containers
-        // These are used to assign IP addresses to the devices
-        Ipv4InterfaceContainer networkDevice0Interface, networkDevice1Interface;
+            // Enable pcap tracing
+            // This function enables pcap tracing for the point-to-point links
+            static std::pair<std::string, std::string> BuildPcapFileNames(const std::string& sched);
 
-        // Point-to-point links 
-        // Link 0 is between node0 and router
-        // Link 1 is between router and node1
-        PointToPointHelper link0Ptp, link1Ptp;
+            // Network and app setup
+            void InitializeSpqUdpApplication();
+            void InitializeDrrUdpApplication();
 
-        // Enable pcap tracing
-        // This function enables pcap tracing for the point-to-point links
-        static std::pair<std::string, std::string> BuildPcapFileNames(const std::string& sched);
+            // Queue scheduler construction
+            void InitializeSpq();
+            void InitializeDrr();
     };
 
 } // namespace ns3

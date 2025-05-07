@@ -68,7 +68,7 @@ namespace ns3 {
         // If not, print an error message and return
         if (!inputFile)
         {
-            std::cerr << "Failed to open config file: " << configFileName << std::endl;
+            NS_LOG_UNCOND("Unable to open config file: " << configFileName);
             return true;
         }
 
@@ -81,14 +81,14 @@ namespace ns3 {
         
         // Handle any exceptions that may occur during parsing
         } catch (const std::exception& e) {
-            std::cerr << "Failed to parse JSON: " << e.what() << std::endl;
+            NS_LOG_UNCOND("Error parsing config file: " << e.what());
             return true;
         }
 
         // Check if the required keys are present in the JSON object
         // If not, print an error message and return
         if (!configInput.contains("QoS") || !configInput["QoS"].contains("Queues")) {
-            std::cerr << "Invalid config provided. Check your config file." << std::endl;
+            NS_LOG_UNCOND("Invalid config file format: Missing QoS or Queues key");
             return true;
         }
 
@@ -126,22 +126,22 @@ namespace ns3 {
     void Simulation::PrintConfig() const
     {
         // Print the QoS configuration
-        std::cout << "QoS Configuration:" << std::endl;
-        std::cout << "  Scheduler Type: " << qosConfig.qosType << std::endl;
+        NS_LOG_UNCOND("QoS Configuration:");
+        NS_LOG_UNCOND("  Scheduler Type: " << qosConfig.qosType);
+        NS_LOG_UNCOND("  Queue Count:    " << qosConfig.queueCount);
 
         // Print the queue attributes
         for (uint32_t i = 0; i < qosConfig.queueCount; ++i) {
-            std::cout << "  Queue " << i + 1 << ":" << std::endl;
-            std::cout << "    MaxPackets: " << qosConfig.maxPackets[i] << std::endl;
-            std::cout << "    DestPort:   " << qosConfig.destinationPorts[i] << std::endl;
-            std::cout << "    Default:    " << (qosConfig.defaults[i] ? "true" : "false") << std::endl;
-
+            NS_LOG_UNCOND("  Queue " << i + 1 << ":");
+            NS_LOG_UNCOND("    MaxPackets: " << qosConfig.maxPackets[i]);
+            NS_LOG_UNCOND("    DestPort:   " << qosConfig.destinationPorts[i]);
+            NS_LOG_UNCOND("    Default:    " << (qosConfig.defaults[i] ? "true" : "false"));
             // Print the priority or weight based on the QoS type
             // This is done using the type of the queue (SPQ or DRR)
             if (qosConfig.qosType == "SPQ") {
-                std::cout << "    Priority:   " << qosConfig.priorities[i] << std::endl;
+                NS_LOG_UNCOND("    Priority:   " << qosConfig.priorities[i]);
             } else if (qosConfig.qosType == "DRR") {
-                std::cout << "    Weight:     " << qosConfig.weights[i] << std::endl;
+                NS_LOG_UNCOND("    Weight:     " << qosConfig.weights[i]);
             }
         }
     }

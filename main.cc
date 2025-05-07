@@ -73,6 +73,7 @@ int main(int argc, char* argv[])
     LogComponentEnable ("DestinationPortNumber", LOG_LEVEL_DEBUG);
     LogComponentEnable ("ProtocolNumber", LOG_LEVEL_INFO);
     LogComponentEnable ("Filter", LOG_LEVEL_WARN);
+    LogComponentEnable ("SourceMask", LOG_LEVEL_WARN);
 
     // Set up the command line argument variables
     std::string runMode;

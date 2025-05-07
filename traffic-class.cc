@@ -13,7 +13,7 @@ NS_LOG_COMPONENT_DEFINE("TrafficClass");
  *
  * Initializes the traffic class with default values.
  */
-TrafficClass::TrafficClass() : m_packets(0), m_maxPackets(100), m_weight(0), m_priorityLevel(0), m_isDefault(false) {}
+TrafficClass::TrafficClass() noexcept: m_packets(0), m_maxPackets(100), m_weight(0), m_priorityLevel(0), m_isDefault(false) {}
 
 /**
  * \ingroup diffserv
@@ -46,18 +46,16 @@ void TrafficClass::SetIsDefault(bool default_queue)
  */
 bool TrafficClass::Enqueue(Ptr<Packet> pkt)
 {
+    // Add the packet to the queue if it is not full
     if (m_packets < m_maxPackets)
     {
         m_queue.push(pkt);
         m_packets++;
 
-        // std::cout << "[TrafficClass::Enqueue] Packet enqueued. "
-        //           << "Current packet count: " << m_packets << std::endl;
-
         return true;
     }
 
-    std::cout << "[TrafficClass::Enqueue] Packet dropped. Queue full." << std::endl;
+    NS_LOG_WARN("Queue is full. Packet not enqueued.");
     return false;
 }
 
@@ -70,7 +68,7 @@ Ptr<Packet> TrafficClass::Dequeue()
     // Return null pointer on empty queue
     if (m_queue.empty())
     {
-        std::cout << "Be aware that the queue is empty." << std::endl;
+        NS_LOG_WARN("Queue is empty. Cannot dequeue.");
         return nullptr;
     }
 
@@ -95,10 +93,9 @@ bool TrafficClass::IsEmpty() const
 
 /**
  * Getter for m_queue's size
- * \returns number of packets in m_queues
+ * \return number of packets in m_queues
  */
-uint32_t
-TrafficClass::GetSize()
+const uint32_t TrafficClass::GetSize() noexcept
 {
     return m_queue.size();
 }
@@ -147,6 +144,7 @@ Ptr<Packet> TrafficClass::Peek() const
     // Return null pointer on empty queue
     if (IsEmpty())
     {
+        NS_LOG_WARN("Queue is empty. Cannot peek.");
         return nullptr;
     }
 
@@ -224,14 +222,17 @@ bool TrafficClass::Match(Ptr<Packet> pkt) const
     // If not filters, always match
     if (m_filters.empty())
     {
+        NS_LOG_DEBUG("No filters. Always match.");
         return true;
     }
 
     // Else, check each filter
     for (Filter *filter : m_filters)
     {
+        // If the filter matches, return true
         if (filter->Match(pkt))
         {
+            NS_LOG_INFO("Filter matched.");
             return true;
         }
     }

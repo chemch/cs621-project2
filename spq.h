@@ -5,7 +5,6 @@
 #include "ns3/packet.h"
 
 namespace ns3 {
-    
     /**
      * \ingroup diffserv
      * \brief SPQ (Strict Priority Queue) implementation of DiffServ scheduler.
@@ -18,7 +17,7 @@ namespace ns3 {
 
             /**
              * \brief Schedules the next packet to be dequeued based on strict priority.
-             * \returns A pointer to the next scheduled packet. (Override of the base class method)
+             * \return A pointer to the next scheduled packet. (Override of the base class method)
              */
             Ptr<const Packet> Schedule() const override;
     };

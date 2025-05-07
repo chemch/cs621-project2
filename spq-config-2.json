@@ -4,17 +4,17 @@
       "Queues": [
         {
           "no": 1,
-          "MaxPackets": 12000,
+          "MaxPackets": 8000,
           "Priority": 2,
-          "Default": true,
+          "Default": false,
           "DestPort": 4000
         },
         {
           "no": 2,
-          "MaxPackets": 5000,
+          "MaxPackets": 3000,
           "Priority": 1,
-          "Default": false,
-          "DestPort": 8000
+          "Default": true,
+          "DestPort": 9000
         }
       ]
     }

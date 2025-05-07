@@ -5,35 +5,37 @@
 #include "ns3/ipv4-address.h"
 #include "filter-element.h"
 
-
 namespace ns3 {
-
-/**
- * \ingroup diffserv
- * \brief Class to match source IP Address using a mask.
- */
-class SourceMask : public FilterElement
-{
-public:
     /**
-     * \brief Constructor.
-     * \param mask The source IP mask to apply.
-     * \param ipAddress The source IP Address to match.
+     * \ingroup diffserv
+     * \brief Class to match source IP Address using a mask.
      */
-    SourceMask(Ipv4Mask mask, Ipv4Address ipAddress);
+    class SourceMask : public FilterElement
+    {
+        public:
+            /**
+             * \brief Constructor.
+             * \param mask The source IP mask to apply.
+             * \param ipAddress The source IP Address to match.
+             */
+            SourceMask(Ipv4Mask mask, Ipv4Address ipAddress);
+            
+            /**
+             * \brief Destructor.
+             */
+            ~SourceMask() override = default;
 
-    /**
-     * \brief Match the packet's source IP Address using the provided mask.
-     * \param pkt The packet to inspect.
-     * \returns true if the masked source IP matches, false otherwise.
-     */
-    bool Match(Ptr<Packet> pkt) const override;
+            /**
+             * \brief Match the packet's source IP Address using the provided mask.
+             * \param pkt The packet to inspect.
+             * \returns true if the masked source IP matches, false otherwise.
+             */
+            bool Match(Ptr<Packet> pkt) const override;
 
-private:
-    Ipv4Mask m_mask;
-    Ipv4Address m_address;
-};
-
+        private:
+            Ipv4Mask m_mask;
+            Ipv4Address m_address;
+    };
 } // namespace ns3
 
 #endif // SOURCE_MASK_H
