@@ -31,7 +31,7 @@ namespace ns3 {
              * \brief Add a queue to the DiffServ class.
              * \param queue The TrafficClass object to be added.
              */
-            virtual void AddQueue(TrafficClass* queue);
+            virtual void RegisterQueue(TrafficClass* queue);
 
             /**
              * \brief Enqueue a packet into the DiffServ queue.

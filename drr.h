@@ -40,7 +40,7 @@ namespace ns3 {
          * \brief Add a new TrafficClass to the DRR.
          * \param trafficClass pointer to the TrafficClass instance.
          */
-        void AddQueue(TrafficClass* trafficClass) override;
+        void RegisterQueue(TrafficClass* trafficClass) override;
 
     private:
         // The current queue index being served
@@ -50,10 +50,10 @@ namespace ns3 {
         mutable uint32_t nextQueue; 
 
         // The official quantum for each queue that has been committed
-        std::vector<uint32_t> queueQuantums; 
+        std::vector<uint32_t> queueQuantum; 
 
         // This is a working array to keep track of the quantum for each queue while searching for the next candidate queue
-        mutable std::vector<uint32_t> tempQueueQuantums;
+        mutable std::vector<uint32_t> tempDeficitCounter;
 
         /**
          * \brief Get the list of queues in the DiffServ class.

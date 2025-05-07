@@ -4,6 +4,25 @@
 #include "ns3/packet.h"
 #include "ns3/queue.h"
 
+/**
+     * DRR Algorithm Reference 1: https://en.wikipedia.org/wiki/Deficit_round_robin
+     * This algorithm is a variant of the round-robin scheduling algorithm
+     * that allows for fair bandwidth allocation among multiple queues.
+     * It uses a quantum value to determine how much data can be sent from each queue
+     * in each round. The quantum is adjusted based on the weight of the queue.
+     * 
+     * DRR Algorithm Reference 2: https://www.cs.columbia.edu/~hgs/teaching/2004/CSW4/lectures/drr.pdf
+     * This paper provides a detailed explanation of the DRR algorithm,
+     * including its implementation and performance analysis.
+     * 
+     * Shreedhar, M., & Varghese, G. (1995). Efficient Fair Queuing using Deficit Round Robin. 
+     * In Proceedings of the Conference on Applications, Technologies, Architectures, and Protocols 
+     * for Computer Communication (SIGCOMM ’95) (pp. 231–242). ACM. 
+     * https://doi.org/10.1145/205287.205316
+     * 
+     * Also found this GitHub useful. It is old but provides a good reference for DRR: https://github.com/vilas897/Implementation-of-Deficit-Round-Robin-in-ns-3/blob/master/ns-3/src/traffic-control/model/drr-queue-disc.h
+     */
+
 namespace ns3 {
     DRR::DRR() : currentQueue(0) {}
 
@@ -33,7 +52,7 @@ namespace ns3 {
             // Basically, we are moving to the next queue
             // and setting the quantum for the next round
             currentQueue = nextQueue;
-            queueQuantums = tempQueueQuantums;
+            queueQuantum = tempDeficitCounter;
 
             return dequeuePkt;
         }
@@ -72,7 +91,7 @@ namespace ns3 {
 
             // Roll over to the next queue and update the quantum
             currentQueue = nextQueue;
-            queueQuantums = tempQueueQuantums;
+            queueQuantum = tempDeficitCounter;
         }
 
         return removePkt;
@@ -85,6 +104,8 @@ namespace ns3 {
      * If it is, the packet is dequeued and the counter is updated. The function continues until a packet is found or all queues are empty.
      * \returns A pointer to the next scheduled packet. If no packet is found, returns nullptr.
      * \note The function uses round-robin scheduling to ensure fair access to the queues.
+     * 
+     * Reference: https://en.wikipedia.org/wiki/Deficit_round_robin
      */
     Ptr<const Packet> DRR::Schedule() const
     {
@@ -100,7 +121,7 @@ namespace ns3 {
 
         // Reset the next queue and quantum
         nextQueue = currentQueue;
-        tempQueueQuantums = queueQuantums;
+        tempDeficitCounter = queueQuantum;
 
         // Check if the queues are empty
         uint32_t empty_count = 0;
@@ -129,16 +150,16 @@ namespace ns3 {
             if (!queues[nextQueue]->IsEmpty())
             {
                 // Set the quantum for the next queue to the sum of the current quantum and the weight of the queue
-                tempQueueQuantums[nextQueue] = queues[nextQueue]->GetWeight() + tempQueueQuantums[nextQueue];
+                tempDeficitCounter[nextQueue] = queues[nextQueue]->GetWeight() + tempDeficitCounter[nextQueue];
 
                 // Get the packet size from the queue for the next queue
                 uint32_t packet_size = queues[nextQueue]->Peek()->GetSize();
 
                 // Check if the packet size is less than or equal to the quantum
-                if (packet_size <= tempQueueQuantums[nextQueue])
+                if (packet_size <= tempDeficitCounter[nextQueue])
                 {
                     // Dequeue the packet and update the quantum
-                    tempQueueQuantums[nextQueue] = tempQueueQuantums[nextQueue] - packet_size;
+                    tempDeficitCounter[nextQueue] = tempDeficitCounter[nextQueue] - packet_size;
 
                     // Return a the the packet from the front of the queue
                     return queues[nextQueue]->Peek();
@@ -158,9 +179,9 @@ namespace ns3 {
      * Adds a TrafficClass to q_class vector
      * \param trafficClass TrafficClass to add
      */
-    void DRR::AddQueue(TrafficClass* trafficClass)
+    void DRR::RegisterQueue(TrafficClass* trafficClass)
     {
-        DiffServ::AddQueue(trafficClass);
-        queueQuantums.push_back(0);
+        DiffServ::RegisterQueue(trafficClass);
+        queueQuantum.push_back(0);
     }
 } // namespace ns3

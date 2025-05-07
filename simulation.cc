@@ -14,7 +14,7 @@ namespace ns3 {
     const Time Simulation::PACKET_TRANS_INTERVAL = Seconds(0.002);
 
     // Define constants for the stop, start and interval times
-    static constexpr double STOP_TIME        = 30.0;
+    static constexpr double STOP_TIME        = 50.0;
     static constexpr double SERVER_START     = 1.0;
     static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 10.0 };
 
@@ -178,7 +178,7 @@ namespace ns3 {
 
             // Add the traffic class to the DRR queue scheduler
             // This is done to set up the queue scheduler with the traffic classes
-            drr->AddQueue(trafficClass);
+            drr->RegisterQueue(trafficClass);
         }
     }
 
@@ -233,7 +233,7 @@ namespace ns3 {
 
             // Add the traffic class to the SPQ queue scheduler
             // This is done to set up the queue scheduler with the traffic classes
-            spq->AddQueue(trafficClass);
+            spq->RegisterQueue(trafficClass);
         }
     }
 

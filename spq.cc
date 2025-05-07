@@ -4,6 +4,17 @@
 #include <optional>
 #include "ns3/log.h"
 
+/**
+ * SPQ Reference: https://www.cs.usfca.edu/vahab/resources/simul15_paper.pdf
+ * 
+ * This paper provides a detailed explanation of the SPQ algorithm,
+ * including its implementation and performance analysis.
+ * 
+ * Chang, R., Rahimi, M., & Pournaghshband, V. (2015). 
+ * Differentiated Service Queuing Disciplines in NS-3. Advanced Network and Security Research Laboratory, 
+ * California State University, Northridge. 
+ */
+
 namespace ns3 {
     // Constant for debugging
     // This is used to enable or disable logging for the SPQ class

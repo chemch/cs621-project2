@@ -159,7 +159,7 @@ namespace ns3 {
     /**
      * \brief Add a traffic class (or queue) to the DiffServ instance.
      */
-    void DiffServ::AddQueue(TrafficClass* trafficClass)
+    void DiffServ::RegisterQueue(TrafficClass* trafficClass)
     {
         q_class.push_back(trafficClass);
     }

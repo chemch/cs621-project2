@@ -569,7 +569,7 @@ DiffservTests::TestDiffServ()
     Ptr<Packet> testPkt = Create<Packet>(42);
     TestDS ds;
     DummyTC* dtc = new DummyTC();
-    ds.AddQueue(dtc);
+    ds.RegisterQueue(dtc);
 
     if (!ds.Enqueue(testPkt))
     {
@@ -610,7 +610,7 @@ DiffservTests::TestSPQ()
     SPQ spq;
     TrafficClass* high = new TrafficClass(); high->SetPriorityLevel(0);
     TrafficClass* low  = new TrafficClass(); low->SetPriorityLevel(1);
-    spq.AddQueue(high); spq.AddQueue(low);
+    spq.RegisterQueue(high); spq.RegisterQueue(low);
 
     Ptr<Packet> ph = Create<Packet>(20);
     Ptr<Packet> pl = Create<Packet>(10);
@@ -637,7 +637,7 @@ DiffservTests::TestDRR()
     DRR drr;
     TrafficClass* tw = new TrafficClass(); tw->SetWeight(70);
     TrafficClass* tl = new TrafficClass(); tl->SetWeight(50);
-    drr.AddQueue(tl); drr.AddQueue(tw);
+    drr.RegisterQueue(tl); drr.RegisterQueue(tw);
 
     Ptr<Packet> ph = Create<Packet>(80);
     Ptr<Packet> pl = Create<Packet>(40);

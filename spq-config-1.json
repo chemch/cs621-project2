@@ -4,7 +4,7 @@
     "Queues": [
       {
         "no": 1,
-        "MaxPackets": 8000,
+        "MaxPackets": 6000,
         "Priority": 2,
         "Default": true,
         "DestPort": 4444
