@@ -14,7 +14,7 @@ using namespace ns3;
 using json = nlohmann::json;
 
 // Define constants for the simulation
-static constexpr double SIM_DURATION = 40.0;
+static constexpr double SIM_DURATION = 30.0;
 
 /**
  * \brief Run the simulation based on the provided configuration file.

@@ -14,9 +14,9 @@ namespace ns3 {
     const Time Simulation::PACKET_TRANS_INTERVAL = Seconds(0.002);
 
     // Define constants for the stop, start and interval times
-    static constexpr double STOP_TIME        = 40.0;
+    static constexpr double STOP_TIME        = 30.0;
     static constexpr double SERVER_START     = 1.0;
-    static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 12.0 };
+    static constexpr double CLIENT_START_OFFSETS[] = { 2.0, 10.0 };
 
     /** 
      * 
@@ -334,7 +334,7 @@ namespace ns3 {
 
                 // Set the server to start and stop at specific times
                 _application.Start(Seconds(SERVER_START));
-                _application.Stop(Seconds(40.0));
+                _application.Stop(Seconds(STOP_TIME));
 
                 // Add the server application to the container
                 serverApplications.Add(_application);

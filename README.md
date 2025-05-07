@@ -14,7 +14,7 @@
 ---
 # Overview
 
-This project extends the NS-3 network simulator with a modular Differentiated Services (DiffServ) framework. At its core is a DiffServ abstract base class—derived from ns3::Queue<Packet>—that models packet classification and scheduling. Incoming packets are sorted into one of many TrafficClass queues via a configurable set of FilterElement rules (e.g., source/destination IP or port, protocol number). The base class provides a Classify(pkt) hook to assign packets to queues and a pure-virtual Schedule() method to pick which queue’s head-of-line packet should be served next. By overriding the protected DoEnqueue/DoDequeue/DoRemove/DoPeek hooks, DiffServ integrates seamlessly with NS-3’s built-in drop-tail, tracing, and callback machinery.
+This project extends the NS-3 network simulator with a modular Differentiated Services (DiffServ) framework. At its core is a DiffServ abstract base class—derived from ns3::Queue[Packet]—that models packet classification and scheduling. Incoming packets are sorted into one of many TrafficClass queues via a configurable set of FilterElement rules (e.g., source/destination IP or port, protocol number). The base class provides a Classify(pkt) hook to assign packets to queues and a pure-virtual Schedule() method to pick which queue’s head-of-line packet should be served next. By overriding the protected DoEnqueue/DoDequeue/DoRemove/DoPeek hooks, DiffServ integrates seamlessly with NS-3’s built-in drop-tail, tracing, and callback machinery.
 
 Building on this foundation, two concrete QoS mechanisms are implemented: Strict Priority Queuing (SPQ) and Deficit Round Robin (DRR). The SPQ subclass simply implements Schedule() to always drain the non-empty queue with the highest priority (lowest priority number). The DRR subclass maintains per-queue byte-deficit counters (quantums), updates them round-robin based on configured weights, and overrides AddQueue() and DoDequeue() to keep its internal deficit state in sync. Both SPQ and DRR accept external configuration via JSON files specifying queue counts, priorities or quantum values, and filter rules. Finally, a suite of automated NS-3 simulation scripts runs a three-node topology (4 Mbps → 1 Mbps) under bulk-transfer workloads to validate that SPQ enforces strict priority and DRR achieves weighted fairness as expected.
 
@@ -27,14 +27,22 @@ Building on this foundation, two concrete QoS mechanisms are implemented: Strict
 # Requirements
 
 - NS3 (v3.42) - Recommend Using the All-in-One Tarball (https://www.nsnam.org/releases/ns-3-42/)
-- Niels Lohmann's Json for C++ (v3.12.0) (Bundled w/ this Application ;-)) (https://nlohmann.me>)
+- Niels Lohmann's Json for C++ (v3.12.0) (Bundled w/ this Application) (https://nlohmann.me>)
 - Python3 (>= v3.13.3)
 - CLang (Version for Mac): arm64-apple-darwin24.4.0
 - CMake (>= 4.0.1)
 
 --- 
 # Run Instructions
-
+1. Unzip the Repo
+- Ex: unzip [FileName].zip
+2. Place the 'diffserv' folder in NS3 scratch
+- Folder Structure should look like this: '<b>ex:</b> /Users/chemch/ns-allinone-3.42/ns-3.42/scratch/diffserv/'
+3. Navigate to the NS3 root directory (<b>ex:</b> /Users/chemch/ns-allinone-3.42/ns-3.42)
+4. Run the application using the NS3 Command Line (2 Modes Available: Test or Simulation)
+- <u>How to Run Unit Tests:</u> ``` ./ns3 run scratch/diffserv/main -- --runMode=test  ```
+- <u>How to Run DRR Simulation:</u> ```./ns3 run scratch/diffserv/main -- --runMode=sim --configFile=scratch/diffserv/drr-config-1.json ```
+- <u>How to Run SPQ Simulation:</u> ``` ./ns3 run scratch/diffserv/main -- --runMode=sim --configFile=scratch/diffserv/spq-config-1.json ```
 
 ---
 # Functionality Overview
@@ -45,6 +53,8 @@ Building on this foundation, two concrete QoS mechanisms are implemented: Strict
 - If pushed to Production/integrated w/ NS3 then we would likely want to update Simulation to allow for n number of SPQ TrafficClasses. The current implementation only supports 2 (which is specified in the PDF requirements).
 --- 
 # Citations
+- Credit to Niels Lohmann for the Json Config Parsing Libary Reference: [Requirements](#requirements)
+
 
 
 ---

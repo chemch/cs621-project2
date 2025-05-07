@@ -56,23 +56,48 @@ bool TrafficClass::Enqueue(Ptr<Packet> pkt)
 
 /**
  * \ingroup diffserv
- * \brief Dequeues a packet from the traffic class.
+ * \brief Removes a packet from the traffic class.
+ * \details Pops the next packet but does *not* fire the "served" trace logging.
+ * From my research this is the main difference between Dequeue() and Remove().
  */
-Ptr<Packet> TrafficClass::Dequeue()
+Ptr<Packet> TrafficClass::Remove()
 {
     // Return null pointer on empty queue
     if (m_queue.empty())
     {
-        NS_LOG_WARN("Queue is empty. Cannot dequeue.");
+        NS_LOG_WARN("Queue is empty. Cannot remove.");
         return nullptr;
     }
 
-    // Dequeue the packet and update the packet count
+    // Remove the packet and update the packet count
     Ptr<Packet> pkt = m_queue.front();
-
+    
     // Pop the packet from the queue and decrement the packet count
     m_queue.pop();
     m_packets--;
+    
+    return pkt;
+}
+
+/**
+ * \ingroup diffserv
+ * \brief Dequeues a packet from the traffic class.
+ * \details Pops the next packet and fires the "served" trace callbacks.
+ */
+Ptr<Packet> TrafficClass::Dequeue()
+{
+    // Use the silent Remove() to pop the packet
+    Ptr<Packet> pkt = Remove();
+    
+    // Return null pointer if the queue is empty
+    if (!pkt)
+    {
+        NS_LOG_WARN("TrafficClass::Dequeue(): queue is empty");
+        return nullptr;
+    }
+
+    // Log the packet transmission
+    NS_LOG_INFO("TrafficClass::Dequeue(): packet served");
     
     return pkt;
 }

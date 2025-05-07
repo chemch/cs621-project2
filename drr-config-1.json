@@ -4,14 +4,14 @@
       "Queues": [
         {
           "no": 1,
-          "MaxPackets": 4000,
+          "MaxPackets": 2000,
           "Weight": 300,
           "Default": false,
           "DestPort": 1111
         },
         {
           "no": 2,
-          "MaxPackets": 4000,
+          "MaxPackets": 2500,
           "Weight": 200,
           "Default": false,
           "DestPort": 2222

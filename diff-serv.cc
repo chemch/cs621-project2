@@ -59,7 +59,7 @@ namespace ns3 {
             uint32_t index = Classify(pktToRemove->Copy());
             if (index < q_class.size())
             {
-                return q_class[index]->Dequeue();
+                return q_class[index]->Remove();
             }
         }
 

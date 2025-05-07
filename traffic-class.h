@@ -55,6 +55,7 @@ namespace ns3 {
             /** 
              * Queue Operations - Important!
              */
+            Ptr<Packet> Remove();
             bool Enqueue(Ptr<Packet> pkt);
             Ptr<Packet> Dequeue();
             Ptr<Packet> Peek() const;
