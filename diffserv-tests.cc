@@ -68,14 +68,6 @@ DiffservTests::TestQueueDequeue()
     TrafficClass tc;
     tc.Enqueue(pkt);
 
-    NS_LOG_UNCOND("\tQueue size after enqueue: " << tc.GetSize());
-    if (tc.GetSize() != 1)
-    {
-        NS_LOG_UNCOND("\tFAILED: Expected queue size of 1.");
-        return false;
-    }
-    NS_LOG_UNCOND("\tPASSED: Enqueue size correct.");
-
     Ptr<Packet> outPkt = tc.Dequeue();
     NS_LOG_UNCOND("\tDequeued packet size: " << outPkt->GetSize());
     if (outPkt->GetSize() != 10)

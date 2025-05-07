@@ -20,6 +20,13 @@ namespace ns3 {
              * \return A pointer to the next scheduled packet. (Override of the base class method)
              */
             Ptr<const Packet> Schedule() const override;
+        
+        private:
+            /**
+             * \brief Get the list of queues in the DiffServ class.
+             * \returns A vector of pointers to TrafficClass objects.
+             */
+            std::vector<TrafficClass*> GetQueues() const;
     };
 } // namespace ns3
 

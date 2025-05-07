@@ -5,7 +5,6 @@
 #include "ns3/object.h"
 
 namespace ns3 {
-
     /**
      * \ingroup diffserv
      * \brief Abstract base class for filter elements.

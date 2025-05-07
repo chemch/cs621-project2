@@ -8,11 +8,48 @@ namespace ns3 {
      */
     DiffServ::DiffServ() {}
 
+    // Create Enqueue, Dequeue, Remove, and Peek methods
+    /**
+     * \brief Enqueues a packet into the queue.
+     * \details This function adds a packet to the queue and returns true if successful.
+     */
+    bool DiffServ::Enqueue(Ptr<Packet> pkt) 
+    {
+        return DoEnqueue(pkt);
+    }
+
+    /**
+     * \brief Dequeues a packet from the queue.
+     * \details This function removes a packet from the queue and returns it.
+     */
+    Ptr<Packet> DiffServ::Dequeue()
+    {
+        return DoDequeue();
+    }
+
+    /**
+     * \brief Peeks at the next packet in the queue without removing it.
+     * \details This function returns a copy of the next packet in the queue without modifying the queue.
+     */
+    Ptr<const Packet> DiffServ::Peek() const
+    {
+        return DoPeek();
+    }
+
     /**
      * \brief Removes a packet from the queue.
      * \details This function removes a packet from the queue and returns it.
      */
     Ptr<Packet> DiffServ::Remove()
+    {
+        return DoRemove();
+    }
+
+    /**
+     * \brief Removes a packet from the queue.
+     * \details This function removes a packet from the queue and returns it.
+     */
+    Ptr<Packet> DiffServ::DoRemove()
     {
         Ptr<const Packet> pktToRemove = Schedule();
 
@@ -33,7 +70,7 @@ namespace ns3 {
      * \brief Enqueues a packet into the queue.
      * \details This function adds a packet to the queue and returns true if successful.
      */
-    bool DiffServ::Enqueue(Ptr<Packet> pkt)
+    bool DiffServ::DoEnqueue(Ptr<Packet> pkt)
     {
         // Get the index of the queue to which the packet belongs
         uint32_t queueIndex = Classify(pkt);
@@ -54,7 +91,7 @@ namespace ns3 {
      * \brief Dequeues a packet from the queue.
      * \details This function removes a packet from the queue and returns it.
      */
-    Ptr<Packet> DiffServ::Dequeue()
+    Ptr<Packet> DiffServ::DoDequeue()
     {
          // Get the next scheduled packet
         Ptr<const Packet> scheduledPkt = Schedule();
@@ -80,7 +117,7 @@ namespace ns3 {
      * \brief Peeks at the next packet in the queue without removing it.
      * \details This function returns a copy of the next packet in the queue without modifying the queue.
      */
-    Ptr<const Packet> DiffServ::Peek() const
+    Ptr<const Packet> DiffServ::DoPeek() const
     {
          // Returns a packet to transmit
         Ptr<const Packet> scheduledPkt = Schedule();
@@ -125,14 +162,5 @@ namespace ns3 {
     void DiffServ::AddQueue(TrafficClass* trafficClass)
     {
         q_class.push_back(trafficClass);
-    }
-
-    /**
-     * \brief Retrieves the list of traffic classes.
-     * \details This function returns the list of traffic classes associated with the DiffServ instance.
-     */
-    std::vector<TrafficClass*> DiffServ::GetQueues() const
-    {
-        return q_class;
     }
 } // namespace ns3

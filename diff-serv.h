@@ -59,6 +59,9 @@ namespace ns3 {
             /**
              * \brief Classify a packet based on its properties.
              * \returns The classification result.
+             * \note This function is supposed to have '= 0' meaning it is a pure virtual function and it needs to be implemented in derived classes.
+             * However, it is not a pure virtual function in this case, as it is defined in the base class. The functionality for Classify would be the same
+             * in most cases, so there is really no need to have it as a pure virtual function. This is documented in my report as an improvement on the diffserv class. 
              */
             virtual uint32_t Classify(Ptr<Packet> pkt);
 
@@ -68,14 +71,20 @@ namespace ns3 {
              */
             virtual Ptr<const Packet> Schedule() const = 0;
 
-            /**
-             * \brief Get the list of queues in the DiffServ class.
-             * \returns A vector of pointers to TrafficClass objects.
-             */
-            std::vector<TrafficClass*> GetQueues() const;
-
-        private:
+        protected:
             std::vector<TrafficClass*> q_class;
+
+            // Called by Queue<Packet>::Enqueue()
+            bool DoEnqueue (Ptr<Packet> pkt);
+
+            // Called by Queue<Packet>::Dequeue()
+            Ptr<Packet> DoDequeue ();
+
+            // Called by Queue<Packet>::Remove()
+            Ptr<Packet> DoRemove ();
+
+            // Called by Queue<Packet>::Peek()
+            Ptr<const Packet> DoPeek () const;
     };
 } // namespace ns3
 

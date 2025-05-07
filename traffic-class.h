@@ -29,11 +29,6 @@ namespace ns3 {
             bool GetIsDefault() const;
 
             /**
-             * Packet Count in traffic class.
-             */
-            uint32_t GetPackets() const;
-
-            /**
              * Maximum number of packets in the traffic class.
              */
             void SetMaxPackets(uint32_t num);
@@ -55,14 +50,7 @@ namespace ns3 {
              * Filters -
              * Set, Get or Add filters to the traffic class.
              */
-            std::vector<Filter*> GetFilters() const;
-            void SetFilters(const std::vector<Filter*>& filters);
             void AddFilter(Filter* filter);
-
-            /**
-             * Get the size of the queue.
-             */
-            const uint32_t GetSize() noexcept;
 
             /** 
              * Queue Operations - Important!
@@ -76,6 +64,9 @@ namespace ns3 {
              * Check if the packet matches the filters.
              */
             bool Match(Ptr<Packet> pkt) const;
+
+        protected:
+            
 
         private:
             uint32_t m_packets;

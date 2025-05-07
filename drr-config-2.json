@@ -1,35 +1,42 @@
 {
-    "QoS": {
-      "Type": "DRR",
-      "Queues": [
-        {
-          "no": 1,
-          "MaxPackets": 5000,
-          "Weight": 100,
-          "Default": true,
-          "DestPort": 3500
-        },
-        {
-          "no": 2,
-          "MaxPackets": 5000,
-          "Weight": 200,
-          "Default": false,
-          "DestPort": 5000
-        }, 
-        {
-          "no": 3,
-          "MaxPackets": 5000,
-          "Weight": 300,
-          "Default": false,
-          "DestPort": 7000
-        },
-        {
-          "no": 4,
-          "MaxPackets": 5000,
-          "Weight": 400,
-          "Default": false,
-          "DestPort": 9000
-        }
-      ]
-    }
+  "QoS": {
+    "Type": "DRR",
+    "Queues": [
+      {
+        "no": 1,
+        "MaxPackets": 4000,
+        "Weight": 300,
+        "Default": false,
+        "DestPort": 1111
+      },
+      {
+        "no": 2,
+        "MaxPackets": 4000,
+        "Weight": 200,
+        "Default": false,
+        "DestPort": 2222
+      },
+      {
+        "no": 3,
+        "MaxPackets": 4000,
+        "Weight": 100,
+        "Default": true,
+        "DestPort": 3333
+      },
+      {
+        "no": 4,
+        "MaxPackets": 4000,
+        "Weight": 900,
+        "Default": true,
+        "DestPort": 4444
+      },
+      {
+        "no": 5,
+        "MaxPackets": 14000,
+        "Weight": 900,
+        "Default": true,
+        "DestPort": 5555
+      }
+    ]
   }
+}

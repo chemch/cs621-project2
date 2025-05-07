@@ -12,11 +12,20 @@ namespace ns3 {
     SPQ::SPQ() {}
 
     /**
+     * \brief Retrieves the list of traffic classes.
+     * \details This function returns the list of traffic classes associated with the DiffServ instance.
+     * Note: This should really be a method in the  parent class DiffServ.
+     */
+    std::vector<TrafficClass*> SPQ::GetQueues() const
+    {
+        return q_class;
+    }
+
+    /**
      * \brief Schedule the next packet from the highest-priority non-empty queue.
      * \returns Ptr<const Packet> The packet at the head of the highest priority non-empty queue.
      * The trick here is that the best priority is actually the queue with the lowest priority level number.
      * This is because we are using strict priority scheduling, where lower numbers indicate higher priority.
-     * If all queues are empty, return nullptr.
      */
     Ptr<const Packet>
     SPQ::Schedule() const

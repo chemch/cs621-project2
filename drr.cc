@@ -8,6 +8,15 @@ namespace ns3 {
     DRR::DRR() : currentQueue(0) {}
 
     /**
+     * \brief Retrieves the list of traffic classes.
+     * \details This function returns the list of traffic classes associated with the DiffServ instance.
+     */
+    std::vector<TrafficClass*> DRR::GetQueues() const
+    {
+        return q_class;
+    }
+
+    /**
      * Dequeues the next scheduled packet and then updates
      * the active_queue index and next_deficit_counter vector
      * \returns packet that has been dequeued

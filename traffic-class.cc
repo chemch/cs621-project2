@@ -25,11 +25,6 @@ bool TrafficClass::GetIsDefault() const
     return m_isDefault;
 }
 
-uint32_t TrafficClass::GetPackets() const
-{
-    return m_packets;
-}
-
 /**
  * \ingroup diffserv
  * \brief Setter for is default
@@ -89,39 +84,6 @@ Ptr<Packet> TrafficClass::Dequeue()
 bool TrafficClass::IsEmpty() const
 {
     return m_packets == 0;
-}
-
-/**
- * Getter for m_queue's size
- * \return number of packets in m_queues
- */
-const uint32_t TrafficClass::GetSize() noexcept
-{
-    return m_queue.size();
-}
-
-/**
- * \ingroup diffserv
- * \brief Getter for the list of filter pointers.
- */
-std::vector<Filter*> TrafficClass::GetFilters() const
-{
-    return m_filters;
-}
-
-/**
- * \ingroup diffserv
- * \brief Setter for replacing the entire list of filters.
- */
-void TrafficClass::SetFilters(const std::vector<Filter*>& filters)
-{
-    NS_LOG_FUNCTION(this);
-
-    // Clear the existing filters
-    m_filters.clear();
-
-    // Add the new filters
-    m_filters = filters;
 }
 
 /**

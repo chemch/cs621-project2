@@ -54,6 +54,12 @@ namespace ns3 {
 
         // This is a working array to keep track of the quantum for each queue while searching for the next candidate queue
         mutable std::vector<uint32_t> tempQueueQuantums;
+
+        /**
+         * \brief Get the list of queues in the DiffServ class.
+         * \returns A vector of pointers to TrafficClass objects.
+         */
+        std::vector<TrafficClass*> GetQueues() const;
     };
 } // namespace ns3
 
