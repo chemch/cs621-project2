@@ -5,46 +5,56 @@
 #include <vector>
 
 namespace ns3 {
-
-/**
- * \ingroup diffserv
- * \brief Deficit Round Robin (DRR) scheduler extending DiffServ
- *
- * This class implements the DRR scheduling algorithm, which distributes
- * bandwidth across multiple traffic classes according to their weight.
- */
-class DRR : public DiffServ
-{
-public:
-    DRR();
-
     /**
-     * \brief Dequeue the packet selected by the DRR scheduling logic.
-     * \returns Ptr<Packet> dequeued packet or nullptr if none available.
+     * \ingroup diffserv
+     * \brief Deficit Round Robin (DRR) scheduler extending DiffServ
+     *
+     * This class implements the DRR scheduling algorithm, which distributes
+     * bandwidth across multiple traffic classes according to their weight.
      */
-    Ptr<Packet> Dequeue() override;
+    class DRR : public DiffServ
+    {
+    public:
+        DRR();
+        ~DRR() override = default;
 
-    Ptr<Packet> Remove() override;
+        /**
+         * \brief Dequeue the packet selected by the DRR scheduling logic.
+         * \returns Ptr<Packet> dequeued packet or nullptr if none available.
+         */
+        Ptr<Packet> Dequeue() override;
 
-    /**
-     * \brief Select the next packet to be dequeued based on DRR.
-     * \returns Ptr<const Packet> packet at the front of the scheduled queue.
-     */
-    Ptr<const Packet> Schedule() const override;
+        /**
+         * \brief Remove the next packet from the active queue.
+         * \returns Ptr<Packet> removed packet or nullptr if none available.
+         */
+        Ptr<Packet> Remove() override;
 
-    /**
-     * \brief Add a new TrafficClass to the DRR queue system.
-     * \param trafficClass pointer to the TrafficClass instance.
-     */
-    void AddQueue(TrafficClass* trafficClass) override;
+        /**
+         * \brief Select the next packet to be dequeued based on DRR.
+         * \returns Ptr<const Packet> packet at the front of the scheduled queue.
+         */
+        Ptr<const Packet> Schedule() const override;
 
-private:
-    uint32_t active_queue; ///< Currently active queue index
-    mutable uint32_t next_active_queue; ///< Candidate queue during scheduling
-    std::vector<uint32_t> deficit_counter; ///< Deficit counters for each queue
-    mutable std::vector<uint32_t> next_deficit_counter; ///< Working copy during Schedule
-};
+        /**
+         * \brief Add a new TrafficClass to the DRR.
+         * \param trafficClass pointer to the TrafficClass instance.
+         */
+        void AddQueue(TrafficClass* trafficClass) override;
 
+    private:
+        // The current queue index being served
+        uint32_t currentQueue;
+
+        // The next queue index to be served
+        mutable uint32_t nextQueue; 
+
+        // The official quantum for each queue that has been committed
+        std::vector<uint32_t> queueQuantums; 
+
+        // This is a working array to keep track of the quantum for each queue while searching for the next candidate queue
+        mutable std::vector<uint32_t> tempQueueQuantums;
+    };
 } // namespace ns3
 
 #endif // DRR_H

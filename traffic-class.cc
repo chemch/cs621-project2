@@ -144,7 +144,6 @@ TrafficClass::GetMaxPackets() const
  */
 Ptr<Packet> TrafficClass::Peek() const
 {
-
     // Return null pointer on empty queue
     if (IsEmpty())
     {
@@ -153,6 +152,7 @@ Ptr<Packet> TrafficClass::Peek() const
 
     // Else, return the front packet
     Ptr<Packet> pkt = m_queue.front();
+    
     return pkt;
 }
 

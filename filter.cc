@@ -6,8 +6,9 @@
 #include "filter-element.h"
 #include "filter.h"
 
-namespace ns3 {
+NS_LOG_COMPONENT_DEFINE("Filter");  
 
+namespace ns3 {
     /**
      * \ingroup diffserv
      * \brief Constructor for Filter.
@@ -19,24 +20,6 @@ namespace ns3 {
      * \brief Destructor for Filter.
      */
     Filter::~Filter() {}
-
-     /**
-     * Returns all filter elements.
-     * @return A vector of pointers to the filter elements.
-     */
-    std::vector<FilterElement*> Filter::getFilterElements() {
-        return m_filterElements;
-    }
-
-    /**
-     * Adds multiple filter elements to the filter.
-     * @param filterElements
-     */
-    void Filter::addAllFilterElements(std::vector<FilterElement*> filterElements) {
-        for (auto filterElement : filterElements) {
-            m_filterElements.push_back(filterElement);
-        }
-    }
 
     /**
      * Adds a filter element to the filter.
@@ -56,12 +39,13 @@ namespace ns3 {
 
             // Check if the filter element matches the packet
             if (!filterElement->Match(packet)) {
-                // std::cout << "[Filter::match] Packet failed filter." << std::endl;
+
+                NS_LOG_INFO("Filter::Match: Packet does not match filter element.");
                 return false;
             }
         }
 
-        // std::cout << "[Filter::match] Packet passed filter." << std::endl;
+        NS_LOG_INFO("Filter::Match: Packet matches all filter elements.");
         return true;
     }
 } // namespace ns3

@@ -1,13 +1,12 @@
-#ifndef CS621_PROJECT2_MAIN_H
-#define CS621_PROJECT2_MAIN_H
+#pragma once
 
 #include <string>
 
 namespace ns3 {
-  class Simulation;
-}
-
-/// Runs the DiffServ sim given a JSON config path.
-void RunSimulation(const std::string& configFile);
-
-#endif // CS621_PROJECT2_MAIN_H
+    /**
+     * \ingroup diffserv
+     * \brief Run the simulation based on the provided configuration file.
+     * \param configFile The path to the configuration file.
+     */
+    void RunSimulation (const std::string &configFile);
+} // namespace ns3

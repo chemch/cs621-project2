@@ -5,9 +5,9 @@
 #include "ns3/ppp-header.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-    NS_LOG_COMPONENT_DEFINE("DestinationPortNumber"); 
+NS_LOG_COMPONENT_DEFINE("DestinationPortNumber"); 
 
+namespace ns3 {
     /**
      * \ingroup diffserv
      * \brief Constructor for DestinationPortNumber.

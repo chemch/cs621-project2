@@ -1,125 +1,157 @@
 #include "drr.h"
+#include "ns3/log.h"
+#include "diff-serv.h"
+#include "ns3/packet.h"
+#include "ns3/queue.h"
 
 namespace ns3 {
+    DRR::DRR() : currentQueue(0) {}
 
-DRR::DRR() : active_queue(0) {}
-
-/**
- * Dequeues the next scheduled packet and then updates
- * the active_queue index and next_deficit_counter vector
- * \returns packet that has been dequeued
- */
-Ptr<Packet> DRR::Dequeue()
-{
-
-    Ptr<Packet> dequeued_packet = DiffServ::Dequeue();
-
-    if (dequeued_packet)
+    /**
+     * Dequeues the next scheduled packet and then updates
+     * the active_queue index and next_deficit_counter vector
+     * \returns packet that has been dequeued
+     */
+    Ptr<Packet> DRR::Dequeue()
     {
-        active_queue = next_active_queue;
-        deficit_counter = next_deficit_counter;
-        return dequeued_packet;
-    }
+        // Use Schedule to find the next packet to dequeue
+        Ptr<Packet> dequeuePkt = DiffServ::Dequeue();
 
-    return nullptr;
-}
-
-Ptr<Packet> DRR::Remove()
-{
-    std::vector<TrafficClass*> queues = GetQueues();
-    if (next_active_queue >= queues.size() || queues[next_active_queue]->IsEmpty())
-    {
-        std::cout << "Active queue is invalid or empty during Remove." << std::endl;
-        return nullptr;
-    }
-
-    Ptr<Packet> pkt = queues[next_active_queue]->Dequeue(); 
-
-    if (pkt != nullptr)
-    {
-        std::cout << "Got removed: " << pkt->GetSize() << std::endl;
-        std::cout << "Removed from queue index: " << next_active_queue << std::endl;
-
-        active_queue = next_active_queue;
-        deficit_counter = next_deficit_counter;
-    }
-
-    return pkt;
-}
-
-/**
- * Finds the next scheduled packet by looping through the TrafficClasses
- * in q_class. The next scheduled packet will be from the first queue that
- * has enough deficit to send out a packet. Each new loop of the
- * queues results in an increase in deficit. The deficit amount is
- * decided based on the TrafficClass's weight variable.
- * 
- * Once this queue is found, Schedule will simply peek and return
- * the front packet.
- * 
- * \returns next scheduled packet
- */
-Ptr<const Packet> DRR::Schedule() const
-{
-   // get traffic class queues
-    std::vector<TrafficClass*> queues = GetQueues();
-
-    // check that there are queues to serve
-    if (queues.size() == 0)
-    {
-        std::cout << "No queues to serve." << std::endl;
-        return nullptr;
-    }
-
-    // reset to current deficit
-    next_active_queue = active_queue;
-    next_deficit_counter = deficit_counter;
-
-    // check first that there are any packets
-    uint32_t empty_count = 0;
-    for (int i = 0; i < queues.size(); i++)
-    {
-        if (queues[i]->IsEmpty())
+        // Check if the dequeue operation was successful
+        if (dequeuePkt)
         {
-            empty_count++;
+            // Update the next active queue and quantum
+            // Basically, we are moving to the next queue
+            // and setting the quantum for the next round
+            currentQueue = nextQueue;
+            queueQuantums = tempQueueQuantums;
+
+            return dequeuePkt;
         }
-    }
-    if (empty_count == queues.size())
-    {
-        std::cout << "All queues are empty." << std::endl;
+        // If dequeue failed, log an error message
+        else 
+        {
+            NS_LOG_UNCOND("Dequeue failed: No packet to dequeue.");
+        }
+
         return nullptr;
     }
 
-    // drr algorithm 
-    while (true)
+    /**
+     * Removes the next scheduled packet from the active queue
+     * and updates the active_queue index and next_deficit_counter vector
+     * \returns packet that has been removed
+     */
+    Ptr<Packet> DRR::Remove()
     {
-        if (!queues[next_active_queue]->IsEmpty())
-        {
-            
+        // Get queues to check if they are empty
+        std::vector<TrafficClass*> queues = GetQueues();
 
-            next_deficit_counter[next_active_queue] = queues[next_active_queue]->GetWeight() + next_deficit_counter[next_active_queue];
-            // std::cout << "Deficit counter for: " << next_active_queue << ": " << next_deficit_counter[next_active_queue] << std::endl;
-            uint32_t packet_size = queues[next_active_queue]->Peek()->GetSize();
-            if (packet_size <= next_deficit_counter[next_active_queue])
+        // Check if there are any queues to serve
+        if (nextQueue >= queues.size() || queues[nextQueue]->IsEmpty())
+        {
+            NS_LOG_UNCOND("No queues to serve or the next active queue is empty.");
+            return nullptr;
+        }
+
+        // Dequeue the packet from the next active queue
+        Ptr<Packet> removePkt = queues[nextQueue]->Dequeue(); 
+
+        if (removePkt != nullptr)
+        {
+            NS_LOG_UNCOND("Packet removed from queue: " << nextQueue);
+
+            // Roll over to the next queue and update the quantum
+            currentQueue = nextQueue;
+            queueQuantums = tempQueueQuantums;
+        }
+
+        return removePkt;
+    }
+
+    /**
+     * \ingroup diffserv
+     * \brief Schedules the next packet to be dequeued based on the DRR algorithm.
+     * \details This function iterates through the queues and checks if the packet size is less than or equal to the quantum.
+     * If it is, the packet is dequeued and the counter is updated. The function continues until a packet is found or all queues are empty.
+     * \returns A pointer to the next scheduled packet. If no packet is found, returns nullptr.
+     * \note The function uses round-robin scheduling to ensure fair access to the queues.
+     */
+    Ptr<const Packet> DRR::Schedule() const
+    {
+        // get traffic class queues
+        std::vector<TrafficClass*> queues = GetQueues();
+
+        // check that there are queues to serve
+        if (queues.size() == 0)
+        {
+            NS_LOG_UNCOND("No queues to serve.");
+            return nullptr;
+        }
+
+        // Reset the next queue and quantum
+        nextQueue = currentQueue;
+        tempQueueQuantums = queueQuantums;
+
+        // Check if the queues are empty
+        uint32_t empty_count = 0;
+        for (int i = 0; i < queues.size(); i++)
+        {
+            if (queues[i]->IsEmpty())
             {
-                // std::cout << "Packet size to remove: " << packet_size << std::endl;
-                next_deficit_counter[next_active_queue] = next_deficit_counter[next_active_queue] - packet_size;
-                return queues[next_active_queue]->Peek();
+                empty_count++;
             }
         }
-        next_active_queue = (next_active_queue + 1) % queues.size();
+
+        // If all queues are empty, return nullptr
+        if (empty_count == queues.size())
+        {
+            NS_LOG_UNCOND("All queues are empty.");
+            return nullptr;
+        }
+
+        // Iterate through the queues in a round-robin fashion
+        // and check if the packet size is less than or equal to the quantum
+        // If it is, dequeue the packet and update the quantum
+        // If not, move to the next queue
+        // and add the weight to the quantum
+        while (true)
+        {
+            if (!queues[nextQueue]->IsEmpty())
+            {
+                // Set the quantum for the next queue to the sum of the current quantum and the weight of the queue
+                tempQueueQuantums[nextQueue] = queues[nextQueue]->GetWeight() + tempQueueQuantums[nextQueue];
+
+                // Get the packet size from the queue for the next queue
+                uint32_t packet_size = queues[nextQueue]->Peek()->GetSize();
+
+                // Check if the packet size is less than or equal to the quantum
+                if (packet_size <= tempQueueQuantums[nextQueue])
+                {
+                    // Dequeue the packet and update the quantum
+                    tempQueueQuantums[nextQueue] = tempQueueQuantums[nextQueue] - packet_size;
+
+                    // Return a the the packet from the front of the queue
+                    return queues[nextQueue]->Peek();
+                }
+            }
+
+            // Set the next queue to the next one in the round-robin fashion
+            nextQueue = (nextQueue + 1) % queues.size();
+        }
+
+        // If no packet is found, return nullptr
+        NS_LOG_UNCOND("No packet found in the queues.");
+        return nullptr;
     }
-    return queues[next_active_queue]->Peek();
-}
 
-/**
- * Adds a TrafficClass to q_class vector
- * \param trafficClass TrafficClass to add
- */
-void DRR::AddQueue(TrafficClass* trafficClass)
-{
-    DiffServ::AddQueue(trafficClass);
-    deficit_counter.push_back(0);
-}
-
+    /**
+     * Adds a TrafficClass to q_class vector
+     * \param trafficClass TrafficClass to add
+     */
+    void DRR::AddQueue(TrafficClass* trafficClass)
+    {
+        DiffServ::AddQueue(trafficClass);
+        queueQuantums.push_back(0);
+    }
 } // namespace ns3

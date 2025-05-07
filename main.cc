@@ -1,12 +1,12 @@
 #include "diffserv-tests.h"
 #include "simulation.h"
 #include <iostream>
-#include <fstream>
 #include <string>
 #include "json.hpp"
 #include "ns3/simulator.h"
 #include "ns3/core-module.h"
 #include "ns3/command-line.h"
+#include "main.h"
 
 using namespace ns3;
 
@@ -20,7 +20,7 @@ static constexpr double SIM_DURATION = 40.0;
  * \brief Run the simulation based on the provided configuration file.
  * \param configFile The path to the configuration file.
  */
-void RunSimulation(const std::string& configFile)
+void ns3::RunSimulation(const std::string& configFile)
 {
     // Initialize the simulation
     Simulation simulation;
@@ -28,27 +28,26 @@ void RunSimulation(const std::string& configFile)
     // Parse the configuration file
     if (simulation.parseConfigs(configFile))
     {
-        std::cerr << "Failed to parse QoS config." << std::endl;
+        NS_LOG_UNCOND("Failed to parse the configuration file.");
         return;
     }
-
     // Print the parsed configuration
     else
     {
-        std::cout << "-- Parsed QoS Config --" << std::endl;
+        NS_LOG_UNCOND("Parsed configuration file successfully.");
         simulation.PrintConfig();
     }
 
-    std::cout << "-- Building Base Topology --" << std::endl;
+    NS_LOG_UNCOND("Building base topology");
     simulation.InitializeTopology();
 
-    std::cout << "-- Build QoS Mechanism --" << std::endl;
+    NS_LOG_UNCOND("Building QoS mechanism");
     simulation.InitializeQosScheduler();
 
-    std::cout << "-- Initialize UDP Application --" << std::endl;
+    NS_LOG_UNCOND("Initialize UDP Application");
     simulation.InitializeUdpApplication();
 
-    std::cout << "-- Starting Simulation --" << std::endl;
+    NS_LOG_UNCOND("Starting simulation...");
 
     // Set the max simulation time
     Simulator::Stop(Seconds(SIM_DURATION));
@@ -57,7 +56,7 @@ void RunSimulation(const std::string& configFile)
     Simulator::Run();
     Simulator::Destroy();
 
-    std::cout << "-- Simulation Finished --" << std::endl;
+    NS_LOG_UNCOND("Simulation finished");
 }
 
 /**
@@ -68,8 +67,12 @@ void RunSimulation(const std::string& configFile)
  */
 int main(int argc, char* argv[])
 {
-    // turn on INFO for DiffServ and DEBUG for your filter
+    // Set logging levels for various components
     LogComponentEnable ("DestinationIPAddress", LOG_LEVEL_DEBUG);
+    LogComponentEnable ("DestinationMask", LOG_LEVEL_DEBUG);
+    LogComponentEnable ("DestinationPortNumber", LOG_LEVEL_DEBUG);
+    LogComponentEnable ("ProtocolNumber", LOG_LEVEL_INFO);
+    LogComponentEnable ("Filter", LOG_LEVEL_WARN);
 
     // Set up the command line argument variables
     std::string runMode;
@@ -94,8 +97,8 @@ int main(int argc, char* argv[])
         // Check if the config file is provided
         if (configFile.empty ())
         {
-        std::cerr << "Error: --configFile must be set in sim mode\n";
-        return 1;
+            NS_LOG_UNCOND("Error: --configFile must be set in sim mode");
+            return 1;
         }
 
         RunSimulation (configFile);
@@ -103,11 +106,11 @@ int main(int argc, char* argv[])
     // Otherwise, print an error message
     else
     {
-        std::cerr << "Error: --runMode must be \"test\" or \"sim\"\n";
+        NS_LOG_UNCOND("Error: --runMode must be \"test\" or \"sim\"");
         return 1;
     }
 
     // Return 0 to indicate successful execution
-    std::cout << "-- Program Finished --" << std::endl;
+    NS_LOG_UNCOND("Ending Application");
     return 0;
 }
