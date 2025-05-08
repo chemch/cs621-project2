@@ -18,7 +18,7 @@ namespace ns3 {
     class TrafficClass
     {
         public:
-            TrafficClass() noexcept;
+            TrafficClass();
             ~TrafficClass() = default;
 
             /**
