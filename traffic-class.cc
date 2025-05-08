@@ -3,8 +3,6 @@
 #include "filter.h"
 #include "traffic-class.h"
 
-NS_LOG_COMPONENT_DEFINE("TrafficClass");
-
 namespace ns3 {
     /**
      * \ingroup diffserv
@@ -20,7 +18,6 @@ namespace ns3 {
      */
     bool TrafficClass::GetIsDefault() const
     {
-        NS_LOG_FUNCTION(this);
         return m_isDefault;
     }
 
@@ -30,7 +27,6 @@ namespace ns3 {
      */
     void TrafficClass::SetIsDefault(bool default_queue)
     {
-        NS_LOG_FUNCTION(this);
         m_isDefault = default_queue;
     }
 
@@ -49,7 +45,6 @@ namespace ns3 {
             return true;
         }
 
-        NS_LOG_WARN("Queue is full. Packet not enqueued.");
         return false;
     }
 
@@ -64,7 +59,6 @@ namespace ns3 {
         // Return null pointer on empty queue
         if (m_queue.empty())
         {
-            NS_LOG_WARN("Queue is empty. Cannot remove.");
             return nullptr;
         }
 
@@ -91,12 +85,8 @@ namespace ns3 {
         // Return null pointer if the queue is empty
         if (!pkt)
         {
-            NS_LOG_WARN("TrafficClass::Dequeue(): queue is empty");
             return nullptr;
         }
-
-        // Log the packet transmission
-        NS_LOG_INFO("TrafficClass::Dequeue(): packet served");
         
         return pkt;
     }
@@ -117,7 +107,6 @@ namespace ns3 {
     uint32_t
     TrafficClass::GetMaxPackets() const
     {
-        NS_LOG_FUNCTION(this);
         return m_maxPackets;
     }
 
@@ -130,7 +119,6 @@ namespace ns3 {
         // Return null pointer on empty queue
         if (IsEmpty())
         {
-            NS_LOG_WARN("Queue is empty. Cannot peek.");
             return nullptr;
         }
 
@@ -146,7 +134,6 @@ namespace ns3 {
      */
     void TrafficClass::AddFilter(Filter *filter)
     {
-        NS_LOG_FUNCTION(this);
         m_filters.push_back(filter);
     }
 
@@ -156,7 +143,6 @@ namespace ns3 {
      */
     void TrafficClass::SetMaxPackets(uint32_t max)
     {
-        NS_LOG_FUNCTION(this);
         m_maxPackets = max;
     }
 
@@ -166,7 +152,6 @@ namespace ns3 {
      */
     void TrafficClass::SetWeight(double weight)
     {
-        NS_LOG_FUNCTION(this);
         m_weight = weight;
     }
 
@@ -176,7 +161,6 @@ namespace ns3 {
      */
     double TrafficClass::GetWeight() const
     {
-        NS_LOG_FUNCTION(this);
         return m_weight;
     }
 
@@ -195,7 +179,6 @@ namespace ns3 {
      */
     uint32_t TrafficClass::GetPriorityLevel() const
     {
-        NS_LOG_FUNCTION(this);
         return m_priorityLevel;
     }
 
@@ -208,7 +191,6 @@ namespace ns3 {
         // If not filters, always match
         if (m_filters.empty())
         {
-            NS_LOG_DEBUG("No filters. Always match.");
             return true;
         }
 
@@ -218,7 +200,6 @@ namespace ns3 {
             // If the filter matches, return true
             if (filter->Match(pkt))
             {
-                NS_LOG_INFO("Filter matched.");
                 return true;
             }
         }
