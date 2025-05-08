@@ -11,9 +11,9 @@ namespace ns3 {
      * Initializes the traffic class with default values.
      */
     TrafficClass::TrafficClass()
-    : m_packets(0),
-        m_maxPackets(100),
-        m_weight(0.0),
+    : m_packets(1000),
+        m_maxPackets(10000),
+        m_weight(100.0),
         m_priorityLevel(0),
         m_isDefault(false)
     {}
@@ -58,7 +58,7 @@ namespace ns3 {
      * \ingroup diffserv
      * \brief Removes a packet from the traffic class.
      * \details Pops the next packet but does *not* fire the "served" trace logging.
-     * From my research this is the main difference between Dequeue() and Remove().
+     * From my research this is the difference between Dequeue() and Remove().
      */
     Ptr<Packet> TrafficClass::Remove()
     {
