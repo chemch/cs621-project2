@@ -5,7 +5,7 @@
 
 NS_LOG_COMPONENT_DEFINE("TrafficClass");
 
-using namespace ns3 {
+namespace ns3 {
     /**
      * \ingroup diffserv
      * \brief Constructor for TrafficClass.

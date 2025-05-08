@@ -66,9 +66,6 @@ namespace ns3 {
              */
             bool Match(Ptr<Packet> pkt) const;
 
-        protected:
-            
-
         private:
             uint32_t m_packets;
             uint32_t m_maxPackets;
