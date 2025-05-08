@@ -18,8 +18,7 @@ namespace ns3 {
     class TrafficClass
     {
         public:
-            TrafficClass() = default;
-            ~TrafficClass() = default;
+            TrafficClass();
 
             /**
              * Default status of the traffic class.
@@ -67,11 +66,11 @@ namespace ns3 {
             bool Match(Ptr<Packet> pkt) const;
 
         private:
-            uint32_t m_packets;
-            uint32_t m_maxPackets;
-            double m_weight;
-            uint32_t m_priorityLevel;
-            bool m_isDefault;
+            uint32_t m_packets       = 0;
+            uint32_t m_maxPackets    = 100;
+            double   m_weight        = 0.0;
+            uint32_t m_priorityLevel = 0;
+            bool     m_isDefault     = false;
 
             // Queue and Filters most important
             std::queue<Ptr<Packet>> m_queue;

@@ -10,7 +10,13 @@ namespace ns3 {
      *
      * Initializes the traffic class with default values.
      */
-    TrafficClass::TrafficClass(): m_packets(0), m_maxPackets(100), m_weight(0), m_priorityLevel(0), m_isDefault(false) {}
+    TrafficClass::TrafficClass()
+    : m_packets(0),
+        m_maxPackets(100),
+        m_weight(0.0),
+        m_priorityLevel(0),
+        m_isDefault(false)
+    {}
 
     /**
      * \ingroup diffserv
